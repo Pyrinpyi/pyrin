@@ -26,6 +26,7 @@ kaspa-consensus-core.workspace = true
 kaspa-mining-errors.workspace = true
 kaspa-hashes.workspace = true
 kaspa-math.workspace = true
+kaspa-muhash.workspace = true
 kaspa-utils.workspace = true
 kaspa-utils-tower.workspace = true
 

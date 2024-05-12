@@ -45,7 +45,7 @@ export interface IScriptPublicKey {
 }
 "#;
 
-/// Represents a Kaspad ScriptPublicKey
+/// Represents a Pyrin ScriptPublicKey
 /// @category Consensus
 #[derive(Default, PartialEq, Eq, Clone, Hash, CastFromJs)]
 #[wasm_bindgen(inspectable)]

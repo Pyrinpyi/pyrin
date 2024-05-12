@@ -13,11 +13,12 @@ repository.workspace = true
 no-asm = ["keccak"]
 
 [dependencies]
-blake2b_simd.workspace = true
+blake3.workspace = true
 borsh.workspace = true
 faster-hex.workspace = true
 js-sys.workspace = true
 kaspa-utils.workspace = true
+kaspa-math.workspace = true
 keccak = { workspace = true, optional = true }
 once_cell.workspace = true
 serde.workspace = true

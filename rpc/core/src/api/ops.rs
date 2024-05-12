@@ -26,7 +26,7 @@ pub enum RpcApiOps {
     GetServerInfo,
     /// Get the current sync status of the node
     GetSyncStatus,
-    /// Returns the network this Kaspad is connected to (Mainnet, Testnet)
+    /// Returns the network this Pyrin is connected to (Mainnet, Testnet)
     GetCurrentNetwork,
     /// Extracts a block out of the request message and attempts to add it to the DAG Returns an empty response or an error message
     SubmitBlock,

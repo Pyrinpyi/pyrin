@@ -56,7 +56,7 @@ impl TryFrom<CpuMinerConfig> for Vec<String> {
 
         match network {
             NetworkType::Mainnet => {
-                argv.push("--port=16110");
+                argv.push("--port=13110");
             }
             NetworkType::Testnet => {
                 argv.push("--testnet");

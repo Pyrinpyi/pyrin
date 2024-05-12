@@ -1,12 +1,12 @@
 
 ## WASM32 bindings for Rusty Kaspa SDK
 
-[<img alt="github" src="https://img.shields.io/badge/github-kaspanet/rusty--kaspa-8da0cb?style=for-the-badge&labelColor=555555&color=8da0cb&logo=github" height="20">](https://github.com/kaspanet/rusty-kaspa/tree/master/wasm)
+[<img alt="github" src="https://img.shields.io/badge/github-kaspanet/rusty--kaspa-8da0cb?style=for-the-badge&labelColor=555555&color=8da0cb&logo=github" height="20">](https://github.com/Pyrinpyi/pyrin/tree/master/wasm)
 [<img alt="crates.io" src="https://img.shields.io/crates/v/kaspa-wasm.svg?maxAge=2592000&style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/kaspa-wasm)
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-kaspa--wasm-56c2a5?maxAge=2592000&style=for-the-badge&logo=docs.rs" height="20">](https://docs.rs/kaspa-wasm)
 <img alt="license" src="https://img.shields.io/crates/l/kaspa-wasm.svg?maxAge=2592000&color=6ac&style=for-the-badge&logoColor=fff" height="20">
 
-Rusty-Kaspa WASM32 bindings offer direct integration of Rust code and Rusty-Kaspa
+Pyrin WASM32 bindings offer direct integration of Rust code and Pyrin
 codebase within JavaScript and TypeScript environments such as Node.js and Web Browsers.
 
 ## Documentation
@@ -65,7 +65,7 @@ file in a web browser.
 ## Building from Source
 
 To build the WASM32 SDK from source, you need to have the Rust environment installed. To do that,
-follow instructions in the [Rusty Kaspa README](https://github.com/kaspanet/rusty-kaspa).
+follow instructions in the [Rusty Kaspa README](https://github.com/Pyrinpyi/pyrin).
 
 Once you have Rust installed, you can build the WASM32 SDK as follows:
 
@@ -80,7 +80,7 @@ Please note that to build from source, you need to have TypeDoc installed global
 
 **IMPORTANT:** To view web examples, you need to serve them from a local web server and
 serve them from the root of the SDK folder (`kaspa-wasm32-sdk` if using a redistributable or
-`rusty-kaspa/wasm` if building from source). This is because examples use relative paths.
+`pyrin/wasm` if building from source). This is because examples use relative paths.
 WASM32 currently can not be loaded using the `file://` protocol.
 
 You can use any web server of your choice. If you don't have one, you can run one as follows:

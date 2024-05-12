@@ -2,6 +2,7 @@ use crate::BlockLevel;
 
 use super::{block::RuleError, tx::TxRuleError};
 use kaspa_hashes::Hash;
+use kaspa_muhash::Hash as Blake2Hash;
 use thiserror::Error;
 
 #[derive(Error, Debug, Clone)]
@@ -52,7 +53,7 @@ pub enum PruningImportError {
     NewPruningPointTxMissingUTXOEntry(Hash),
 
     #[error("the imported multiset hash was expected to be {0} and was actually {1}")]
-    ImportedMultisetHashMismatch(Hash, Hash),
+    ImportedMultisetHashMismatch(Blake2Hash, Blake2Hash),
 
     #[error("pruning import data lead to validation rule error")]
     PruningImportRuleError(#[from] RuleError),

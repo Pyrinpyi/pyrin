@@ -48,7 +48,7 @@ impl Args {
         Args {
             private_key: m.get_one::<String>("private-key").cloned(),
             tps: m.get_one::<u64>("tps").cloned().unwrap(),
-            rpc_server: m.get_one::<String>("rpcserver").cloned().unwrap_or("localhost:16210".to_owned()),
+            rpc_server: m.get_one::<String>("rpcserver").cloned().unwrap_or("localhost:13110".to_owned()),
             threads: m.get_one::<u8>("threads").cloned().unwrap(),
             unleashed: m.get_one::<bool>("unleashed").cloned().unwrap_or(false),
         }
@@ -74,7 +74,7 @@ pub fn cli() -> Command {
                 .long("rpcserver")
                 .short('s')
                 .value_name("rpcserver")
-                .default_value("localhost:16210")
+                .default_value("localhost:13110")
                 .help("RPC server"),
         )
         .arg(

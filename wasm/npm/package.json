@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kaspanet/rusty-kaspa.git"
+    "url": "git+https://github.com/Pyrinpyi/pyrin.git"
   },
   "keywords": [
     "kaspa",
@@ -18,9 +18,9 @@
   "author": "Kaspa developers",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/kaspanet/rusty-kaspa/issues"
+    "url": "https://github.com/Pyrinpyi/pyrin/issues"
   },
-  "homepage": "https://github.com/kaspanet/rusty-kaspa#readme",
+  "homepage": "https://github.com/Pyrinpyi/pyrin#readme",
   "dependencies": {
     "websocket": "1.0.34",
     "kaspa-wasm": "0.13.5"

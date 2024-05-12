@@ -1,7 +1,7 @@
 [package]
-name = "kaspad"
-description = "Kaspa full node daemon"
-keywords = ["kaspa", "blockdag"]
+name = "pyrin"
+description = "Pyrin full node daemon"
+keywords = ["pyrin", "kaspa", "blockdag"]
 rust-version.workspace = true
 version.workspace = true
 edition.workspace = true

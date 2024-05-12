@@ -1,6 +1,7 @@
 use crate::pb as protowire;
 use kaspa_consensus_core::{header::Header, BlueWorkType};
 use kaspa_hashes::Hash;
+use kaspa_muhash::Hash as Blake2Hash;
 
 use super::error::ConversionError;
 use super::option::TryIntoOptionEx;
@@ -16,7 +17,7 @@ impl From<&Header> for protowire::BlockHeader {
             parents: item.parents_by_level.iter().map(protowire::BlockLevelParents::from).collect(),
             hash_merkle_root: Some(item.hash_merkle_root.into()),
             accepted_id_merkle_root: Some(item.accepted_id_merkle_root.into()),
-            utxo_commitment: Some(item.utxo_commitment.into()),
+            utxo_commitment: Some(Hash::from_bytes(item.utxo_commitment.as_bytes()).into()),
             timestamp: item.timestamp.try_into().expect("timestamp is always convertible to i64"),
             bits: item.bits,
             nonce: item.nonce,
@@ -47,7 +48,7 @@ impl TryFrom<protowire::BlockHeader> for Header {
             item.parents.into_iter().map(Vec::<Hash>::try_from).collect::<Result<Vec<Vec<Hash>>, ConversionError>>()?,
             item.hash_merkle_root.try_into_ex()?,
             item.accepted_id_merkle_root.try_into_ex()?,
-            item.utxo_commitment.try_into_ex()?,
+            Blake2Hash::from_bytes(<Option<protowire::Hash> as TryIntoOptionEx<Hash>>::try_into_ex(item.utxo_commitment)?.as_bytes()),
             item.timestamp.try_into()?,
             item.bits,
             item.nonce,

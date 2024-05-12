@@ -1,6 +1,7 @@
 use crate::{hashing, BlueWorkType};
 use borsh::{BorshDeserialize, BorshSerialize};
 use kaspa_hashes::Hash;
+use kaspa_muhash::Hash as Blake2Hash;
 use serde::{Deserialize, Serialize};
 
 /// @category Consensus
@@ -13,7 +14,7 @@ pub struct Header {
     pub parents_by_level: Vec<Vec<Hash>>,
     pub hash_merkle_root: Hash,
     pub accepted_id_merkle_root: Hash,
-    pub utxo_commitment: Hash,
+    pub utxo_commitment: Blake2Hash,
     /// Timestamp is in milliseconds
     pub timestamp: u64,
     pub bits: u32,
@@ -31,7 +32,7 @@ impl Header {
         parents_by_level: Vec<Vec<Hash>>,
         hash_merkle_root: Hash,
         accepted_id_merkle_root: Hash,
-        utxo_commitment: Hash,
+        utxo_commitment: Blake2Hash,
         timestamp: u64,
         bits: u32,
         nonce: u64,

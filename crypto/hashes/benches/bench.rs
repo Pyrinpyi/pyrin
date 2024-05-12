@@ -45,7 +45,7 @@ fn bench_pow_hash(c: &mut Criterion) {
     c.bench_function("PoWHash including timestamp", |b| {
         b.iter(|| {
             let hasher = PowHash::new(black_box(pre_pow_hash), black_box(timestamp));
-            black_box(hasher.finalize_with_nonce(black_box(nonce)));
+            black_box(hasher.clone().finalize_with_nonce(black_box(nonce)));
         })
     });
     let hasher = PowHash::new(black_box(pre_pow_hash), black_box(timestamp));

@@ -6,6 +6,7 @@ use kaspa_consensus_core::{
     utxo::utxo_collection::UtxoCollection,
 };
 use kaspa_hashes::{Hash, HASH_SIZE};
+use kaspa_muhash::{Hash as Blake2Hash};
 use rand::{rngs::SmallRng, seq::SliceRandom, Rng};
 
 pub fn header_from_precomputed_hash(hash: Hash, parents: Vec<Hash>) -> Header {
@@ -34,6 +35,11 @@ pub fn generate_random_utxos_from_script_public_key_pool(
 pub fn generate_random_hash(rng: &mut SmallRng) -> Hash {
     let random_bytes = rng.gen::<[u8; HASH_SIZE]>();
     Hash::from_bytes(random_bytes)
+}
+
+pub fn generate_random_blake2_hash(rng: &mut SmallRng) -> Blake2Hash {
+    let random_bytes = rng.gen::<[u8; HASH_SIZE]>();
+    Blake2Hash::from_bytes(random_bytes)
 }
 
 pub fn generate_random_outpoint(rng: &mut SmallRng) -> TransactionOutpoint {
@@ -100,7 +106,7 @@ pub fn generate_random_header(rng: &mut SmallRng, parent_amount: usize) -> Heade
         vec![generate_random_hashes(rng, parent_amount)],
         generate_random_hash(rng),
         generate_random_hash(rng),
-        generate_random_hash(rng),
+        generate_random_blake2_hash(rng),
         rng.gen(),
         rng.gen(),
         rng.gen(),

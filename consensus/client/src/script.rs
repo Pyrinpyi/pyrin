@@ -241,7 +241,7 @@ export enum Opcode {
     OpUnknown167 = 0xa7,
     OpSha256 = 0xa8,
     OpCheckMultiSigECDSA = 0xa9,
-    OpBlake2b = 0xaa,
+    OpBlake3 = 0xaa,
     OpCheckSigECDSA = 0xab,
     OpCheckSig = 0xac,
     OpCheckSigVerify = 0xad,

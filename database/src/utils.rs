@@ -43,7 +43,7 @@ impl Drop for DbLifetime {
 
 pub fn get_kaspa_tempdir() -> TempDir {
     let global_tempdir = std::env::temp_dir();
-    let kaspa_tempdir = global_tempdir.join("rusty-kaspa");
+    let kaspa_tempdir = global_tempdir.join("pyrin");
     std::fs::create_dir_all(kaspa_tempdir.as_path()).unwrap();
     let db_tempdir = tempfile::tempdir_in(kaspa_tempdir.as_path()).unwrap();
     db_tempdir

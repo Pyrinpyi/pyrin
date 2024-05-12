@@ -31,7 +31,7 @@ const UPNP_DEADLINE_SEC: u64 = 2 * 60;
 const UPNP_EXTEND_PERIOD: u64 = UPNP_DEADLINE_SEC / 2;
 
 /// The name used as description when registering the UPnP service
-pub(crate) const UPNP_REGISTRATION_NAME: &str = "rusty-kaspa";
+pub(crate) const UPNP_REGISTRATION_NAME: &str = "pyrin";
 
 struct ExtendHelper {
     gateway: Gateway,
@@ -568,7 +568,7 @@ mod address_store_with_cache {
                             current_ip_bytes[0], current_ip_bytes[1], current_ip_bytes[2], current_ip_bytes[3]
                         ))
                         .unwrap(),
-                        16111,
+                        13111,
                     ));
                     num_of_addresses += 1;
                 }

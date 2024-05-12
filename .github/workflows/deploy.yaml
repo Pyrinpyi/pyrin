@@ -10,7 +10,6 @@ jobs:
       fail-fast: false
       matrix:
         # Build gnu-linux on ubuntu-18.04 and musl on ubuntu latest
-        # os: [ ubuntu-18.04, ubuntu-latest, windows-latest, macos-latest ]
         os: [ ubuntu-latest, windows-latest, macos-latest ]
     name: Building, ${{ matrix.os }}
     steps:
@@ -49,14 +48,11 @@ jobs:
         # We're using musl to make the binaries statically linked and portable
         run: |
           cargo install cargo-zigbuild
-          cargo --verbose zigbuild --bin kaspad --bin simpa --bin rothschild --bin kaspa-wallet --release --target x86_64-unknown-linux-gnu.2.27 # Use an older glibc version
+          cargo --verbose zigbuild --bin pyrin --release --target x86_64-unknown-linux-gnu.2.27
           mkdir bin || true
-          cp target/x86_64-unknown-linux-gnu/release/kaspad bin/
-          cp target/x86_64-unknown-linux-gnu/release/simpa bin/
-          cp target/x86_64-unknown-linux-gnu/release/rothschild bin/
-          cp target/x86_64-unknown-linux-gnu/release/kaspa-wallet bin/
-          archive="bin/rusty-kaspa-${{ github.event.release.tag_name }}-linux-gnu-amd64.zip"
-          asset_name="rusty-kaspa-${{ github.event.release.tag_name }}-linux-gnu-amd64.zip"
+          cp target/x86_64-unknown-linux-gnu/release/pyrin bin/
+          archive="bin/pyrin-${{ github.event.release.tag_name }}-linux-gnu-amd64.zip"
+          asset_name="pyrin-${{ github.event.release.tag_name }}-linux-gnu-amd64.zip"
           zip -r "${archive}" ./bin/*
           echo "archive=${archive}" >> $GITHUB_ENV
           echo "asset_name=${asset_name}" >> $GITHUB_ENV
@@ -65,17 +61,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          cargo build --bin kaspad --release
-          cargo build --bin simpa --release
-          cargo build --bin rothschild --release
-          cargo build --bin kaspa-wallet --release
+          cargo build --bin pyrin --release
           mkdir bin || true
-          cp target/release/kaspad.exe bin/
-          cp target/release/simpa.exe bin/
-          cp target/release/rothschild.exe bin/
-          cp target/release/kaspa-wallet.exe bin/
-          archive="bin/rusty-kaspa-${{ github.event.release.tag_name }}-win64.zip"
-          asset_name="rusty-kaspa-${{ github.event.release.tag_name }}-win64.zip"
+          cp target/release/pyrin.exe bin/
+          archive="bin/pyrin-${{ github.event.release.tag_name }}-win64.zip"
+          asset_name="pyrin-${{ github.event.release.tag_name }}-win64.zip"
           powershell "Compress-Archive bin/* \"${archive}\""
           echo "archive=${archive}" >> $GITHUB_ENV
           echo "asset_name=${asset_name}" >> $GITHUB_ENV
@@ -83,17 +73,11 @@ jobs:
       - name: Build on MacOS
         if: runner.os == 'macOS'
         run: |
-          cargo build --bin kaspad --release
-          cargo build --bin simpa --release
-          cargo build --bin rothschild --release
-          cargo build --bin kaspa-wallet --release
+          cargo build --bin pyrin --release
           mkdir bin || true
-          cp target/release/kaspad bin/
-          cp target/release/simpa bin/
-          cp target/release/rothschild bin/
-          cp target/release/kaspa-wallet bin/
-          archive="bin/rusty-kaspa-${{ github.event.release.tag_name }}-osx.zip"
-          asset_name="rusty-kaspa-${{ github.event.release.tag_name }}-osx.zip"
+          cp target/release/pyrin bin/
+          archive="bin/pyrin-${{ github.event.release.tag_name }}-osx.zip"
+          asset_name="pyrin-${{ github.event.release.tag_name }}-osx.zip"
           zip -r "${archive}" ./bin/*
           echo "archive=${archive}" >> $GITHUB_ENV
           echo "asset_name=${asset_name}" >> $GITHUB_ENV
@@ -172,23 +156,23 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Build WASM32 SDK
-        run: |
-          cd wasm
-          bash build-release
-          mv release/kaspa-wasm32-sdk.zip ../kaspa-wasm32-sdk-${{ github.event.release.tag_name }}.zip
-
-          archive="kaspa-wasm32-sdk-${{ github.event.release.tag_name }}.zip"
-          asset_name="kaspa-wasm32-sdk-${{ github.event.release.tag_name }}.zip"
-          echo "archive=${archive}" >> $GITHUB_ENV
-          echo "asset_name=${asset_name}" >> $GITHUB_ENV
-
-      - name: Upload WASM32 SDK
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: "./${{ env.archive }}"
-          asset_name: "${{ env.asset_name }}"
-          asset_content_type: application/zip
+#      - name: Build WASM32 SDK
+#        run: |
+#          cd wasm
+#          bash build-release
+#          mv release/kaspa-wasm32-sdk.zip ../kaspa-wasm32-sdk-${{ github.event.release.tag_name }}.zip
+#
+#          archive="kaspa-wasm32-sdk-${{ github.event.release.tag_name }}.zip"
+#          asset_name="kaspa-wasm32-sdk-${{ github.event.release.tag_name }}.zip"
+#          echo "archive=${archive}" >> $GITHUB_ENV
+#          echo "asset_name=${asset_name}" >> $GITHUB_ENV
+#
+#      - name: Upload WASM32 SDK
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ github.event.release.upload_url }}
+#          asset_path: "./${{ env.archive }}"
+#          asset_name: "${{ env.asset_name }}"
+#          asset_content_type: application/zip

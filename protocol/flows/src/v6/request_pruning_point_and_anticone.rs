@@ -1,6 +1,6 @@
 //!
 //! In v6 of the P2P protocol we dropped the filling of DAA and GHOSTDAG indices for each trusted entry
-//! since the syncee no longer uses them in the rusty-kaspa design where the full sub-DAG is sent
+//! since the syncee no longer uses them in the pyrin design where the full sub-DAG is sent
 //!
 
 use itertools::Itertools;

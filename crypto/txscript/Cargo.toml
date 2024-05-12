@@ -10,7 +10,7 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-blake2b_simd.workspace = true
+blake3.workspace = true
 borsh.workspace = true
 indexmap.workspace = true
 itertools.workspace = true

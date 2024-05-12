@@ -1,9 +1,8 @@
 use crate::{
-    hashing::HasherExtensions,
     tx::{TransactionOutpoint, UtxoEntry, VerifiableTransaction},
 };
-use kaspa_hashes::HasherBase;
-use kaspa_muhash::MuHash;
+pub(crate) use kaspa_muhash::{MuHash, blake2_hashers::HasherBase, blake2_hashers::HasherExtensions};
+
 
 pub trait MuHashExtensions {
     fn add_transaction(&mut self, tx: &impl VerifiableTransaction, block_daa_score: u64);

@@ -26,7 +26,7 @@ pub trait HasherExtensions {
     fn write_u64(&mut self, element: u64) -> &mut Self;
 
     /// Writes blue work as big endian bytes w/o the leading zeros
-    /// (emulates bigint.bytes() in the kaspad golang ref)
+    /// (emulates bigint.bytes() in the pyrin golang ref)
     fn write_blue_work(&mut self, work: BlueWorkType) -> &mut Self;
 
     /// Writes the number of bytes followed by the bytes themselves

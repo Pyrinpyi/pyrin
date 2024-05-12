@@ -36,7 +36,7 @@ kaspa-txscript.workspace = true
 kaspa-utils.workspace = true
 kaspa-utxoindex.workspace = true
 kaspa-wrpc-server.workspace = true
-kaspad.workspace = true
+pyrin.workspace = true
 
 async-channel.workspace = true
 async-trait.workspace = true
@@ -74,4 +74,4 @@ kaspa-txscript-errors.workspace = true
 [features]
 heap = ["dhat"]
 html_reports = []
-devnet-prealloc = ["kaspad/devnet-prealloc"]
+devnet-prealloc = ["pyrin/devnet-prealloc"]

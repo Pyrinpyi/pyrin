@@ -2,6 +2,7 @@ use crate::protowire;
 use crate::{from, try_from};
 use kaspa_rpc_core::{FromRpcHex, RpcError, RpcHash, RpcResult, ToRpcHex};
 use std::str::FromStr;
+use kaspa_muhash::Hash as Blake2Hash;
 
 // ----------------------------------------------------------------------------
 // rpc_core to protowire
@@ -37,7 +38,7 @@ try_from!(item: &protowire::RpcBlockHeader, kaspa_rpc_core::RpcHeader, {
         item.parents.iter().map(Vec::<RpcHash>::try_from).collect::<RpcResult<Vec<Vec<RpcHash>>>>()?,
         RpcHash::from_str(&item.hash_merkle_root)?,
         RpcHash::from_str(&item.accepted_id_merkle_root)?,
-        RpcHash::from_str(&item.utxo_commitment)?,
+        Blake2Hash::from_bytes(RpcHash::from_str(&item.utxo_commitment)?.as_bytes()),
         item.timestamp.try_into()?,
         item.bits,
         item.nonce,
@@ -56,6 +57,7 @@ try_from!(item: &protowire::RpcBlockLevelParents, Vec<RpcHash>, {
 mod tests {
     use crate::protowire;
     use kaspa_rpc_core::{RpcHash, RpcHeader};
+    use kaspa_muhash::Hash as Blake2Hash;
 
     fn new_unique() -> RpcHash {
         use std::sync::atomic::{AtomicU64, Ordering};
@@ -111,7 +113,7 @@ mod tests {
             vec![vec![new_unique(), new_unique(), new_unique()], vec![new_unique()], vec![new_unique(), new_unique()]],
             new_unique(),
             new_unique(),
-            new_unique(),
+            Blake2Hash::from_bytes(new_unique().as_bytes()),
             123,
             12345,
             98765,

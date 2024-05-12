@@ -12,15 +12,29 @@ repository.workspace = true
 [dependencies]
 kaspa-hashes.workspace = true
 kaspa-math.workspace = true
+kaspa-utils.workspace = true
 rand_chacha.workspace = true
 serde.workspace = true
+sha2.workspace = true
+blake2b_simd.workspace = true
+once_cell.workspace = true
+wasm-bindgen.workspace = true
+hex.workspace = true
+faster-hex.workspace = true
+borsh.workspace = true
+workflow-wasm.workspace = true
+keccak = { workspace = true, optional = true }
 
 # For the exhuative tests, should only be enabled with release
 rayon = { workspace = true, optional = true }
 
+[target.'cfg(any(target_os = "windows", not(target_arch = "x86_64")))'.dependencies]
+keccak.workspace = true
+
 [dev-dependencies]
 criterion.workspace = true
 rand.workspace = true
+sha3.workspace = true
 
 [[bench]]
 name = "bench"

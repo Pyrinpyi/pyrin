@@ -28,7 +28,7 @@ pub enum NetworkType {
 impl NetworkType {
     pub fn default_rpc_port(&self) -> u16 {
         match self {
-            NetworkType::Mainnet => 16110,
+            NetworkType::Mainnet => 13110,
             NetworkType::Testnet => 16210,
             NetworkType::Simnet => 16510,
             NetworkType::Devnet => 16610,
@@ -143,7 +143,7 @@ impl TryFrom<&NetworkTypeT> for Prefix {
 
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum NetworkIdError {
-    #[error("Invalid network name prefix: {0}. The expected prefix is 'kaspa'.")]
+    #[error("Invalid network name prefix: {0}. The expected prefix is 'pyrin'.")]
     InvalidPrefix(String),
 
     #[error(transparent)]
@@ -175,7 +175,7 @@ impl From<NetworkIdError> for JsValue {
 }
 
 ///
-/// NetworkId is a unique identifier for a kaspa network instance.
+/// NetworkId is a unique identifier for a pyrin network instance.
 /// It is composed of a network type and an optional suffix.
 ///
 /// @category Consensus
@@ -228,7 +228,7 @@ impl NetworkId {
         // this reasoning so we keep it on the same port in order to simplify RPC client management (hence [`default_rpc_port`]
         // is defined on the [`NetworkType`] struct
         match self.network_type {
-            NetworkType::Mainnet => 16111,
+            NetworkType::Mainnet => 13111,
             NetworkType::Testnet => match self.suffix {
                 Some(10) => 16211,
                 Some(11) => 16311,
@@ -250,13 +250,13 @@ impl NetworkId {
         NETWORK_IDS.iter().copied()
     }
 
-    /// Returns a textual description of the network prefixed with `kaspa-`
+    /// Returns a textual description of the network prefixed with `pyrin-`
     pub fn to_prefixed(&self) -> String {
-        format!("kaspa-{}", self)
+        format!("pyrin-{}", self)
     }
 
     pub fn from_prefixed(prefixed: &str) -> Result<Self, NetworkIdError> {
-        if let Some(stripped) = prefixed.strip_prefix("kaspa-") {
+        if let Some(stripped) = prefixed.strip_prefix("pyrin-") {
             Self::from_str(stripped)
         } else {
             Err(NetworkIdError::InvalidPrefix(prefixed.to_string()))

@@ -667,6 +667,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "blake3"
+version = "1.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "30cca6d3674597c30ddf2c587bf8d9d65c9a84d2326d941cc79c9842dfe0ef52"
+dependencies = [
+ "arrayref",
+ "arrayvec",
+ "cc",
+ "cfg-if 1.0.0",
+ "constant_time_eq",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2613,6 +2626,7 @@ dependencies = [
  "kaspa-consensus-core",
  "kaspa-hashes",
  "kaspa-math",
+ "kaspa-muhash",
  "kaspa-txscript",
  "kaspa-utils",
  "kaspa-wasm-core",
@@ -2830,6 +2844,7 @@ dependencies = [
  "h2",
  "kaspa-consensus-core",
  "kaspa-core",
+ "kaspa-muhash",
  "kaspa-notify",
  "kaspa-rpc-core",
  "kaspa-utils",
@@ -2886,12 +2901,13 @@ dependencies = [
 name = "kaspa-hashes"
 version = "0.14.1"
 dependencies = [
- "blake2b_simd",
+ "blake3",
  "borsh",
  "cc",
  "criterion",
  "faster-hex 0.6.1",
  "js-sys",
+ "kaspa-math",
  "kaspa-utils",
  "keccak",
  "once_cell",
@@ -3032,13 +3048,24 @@ dependencies = [
 name = "kaspa-muhash"
 version = "0.14.1"
 dependencies = [
+ "blake2b_simd",
+ "borsh",
  "criterion",
+ "faster-hex 0.6.1",
+ "hex",
  "kaspa-hashes",
  "kaspa-math",
+ "kaspa-utils",
+ "keccak",
+ "once_cell",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "rayon",
  "serde",
+ "sha2",
+ "sha3",
+ "wasm-bindgen",
+ "workflow-wasm",
 ]
 
 [[package]]
@@ -3122,6 +3149,7 @@ dependencies = [
  "kaspa-hashes",
  "kaspa-math",
  "kaspa-mining-errors",
+ "kaspa-muhash",
  "kaspa-utils",
  "kaspa-utils-tower",
  "log",
@@ -3320,9 +3348,9 @@ dependencies = [
  "kaspa-utils",
  "kaspa-utxoindex",
  "kaspa-wrpc-server",
- "kaspad",
  "log",
  "parking_lot",
+ "pyrin",
  "rand 0.8.5",
  "rand_distr 0.4.3",
  "rayon",
@@ -3341,7 +3369,7 @@ dependencies = [
 name = "kaspa-txscript"
 version = "0.14.1"
 dependencies = [
- "blake2b_simd",
+ "blake3",
  "borsh",
  "criterion",
  "hex",
@@ -3744,51 +3772,6 @@ dependencies = [
  "workflow-log",
  "workflow-rpc",
  "workflow-wasm",
-]
-
-[[package]]
-name = "kaspad"
-version = "0.14.1"
-dependencies = [
- "async-channel 2.2.1",
- "clap 4.5.4",
- "dhat",
- "dirs",
- "futures-util",
- "kaspa-addresses",
- "kaspa-addressmanager",
- "kaspa-alloc",
- "kaspa-consensus",
- "kaspa-consensus-core",
- "kaspa-consensus-notify",
- "kaspa-consensusmanager",
- "kaspa-core",
- "kaspa-database",
- "kaspa-grpc-server",
- "kaspa-hashes",
- "kaspa-index-processor",
- "kaspa-mining",
- "kaspa-notify",
- "kaspa-p2p-flows",
- "kaspa-perf-monitor",
- "kaspa-rpc-core",
- "kaspa-rpc-service",
- "kaspa-txscript",
- "kaspa-utils",
- "kaspa-utils-tower",
- "kaspa-utxoindex",
- "kaspa-wrpc-server",
- "log",
- "num_cpus",
- "rand 0.8.5",
- "rayon",
- "serde",
- "serde_with",
- "tempfile",
- "thiserror",
- "tokio",
- "toml 0.8.12",
- "workflow-log",
 ]
 
 [[package]]
@@ -4867,6 +4850,51 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3235c33eb02c1f1e212abdbe34c78b264b038fb58ca612664343271e36e55ffe"
 dependencies = [
  "prost",
+]
+
+[[package]]
+name = "pyrin"
+version = "0.14.1"
+dependencies = [
+ "async-channel 2.2.1",
+ "clap 4.5.4",
+ "dhat",
+ "dirs",
+ "futures-util",
+ "kaspa-addresses",
+ "kaspa-addressmanager",
+ "kaspa-alloc",
+ "kaspa-consensus",
+ "kaspa-consensus-core",
+ "kaspa-consensus-notify",
+ "kaspa-consensusmanager",
+ "kaspa-core",
+ "kaspa-database",
+ "kaspa-grpc-server",
+ "kaspa-hashes",
+ "kaspa-index-processor",
+ "kaspa-mining",
+ "kaspa-notify",
+ "kaspa-p2p-flows",
+ "kaspa-perf-monitor",
+ "kaspa-rpc-core",
+ "kaspa-rpc-service",
+ "kaspa-txscript",
+ "kaspa-utils",
+ "kaspa-utils-tower",
+ "kaspa-utxoindex",
+ "kaspa-wrpc-server",
+ "log",
+ "num_cpus",
+ "rand 0.8.5",
+ "rayon",
+ "serde",
+ "serde_with",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "toml 0.8.12",
+ "workflow-log",
 ]
 
 [[package]]

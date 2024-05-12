@@ -9,6 +9,7 @@ use crate::{
 use itertools::Itertools;
 use kaspa_hashes::Hash;
 use thiserror::Error;
+use kaspa_muhash::Hash as Blake2Hash;
 
 #[derive(Clone, Debug)]
 pub struct VecDisplay<T: Display>(pub Vec<T>);
@@ -131,7 +132,7 @@ pub enum RuleError {
     UnexpectedIndirectParents(TwoDimVecDisplay<Hash>, TwoDimVecDisplay<Hash>),
 
     #[error("block {0} UTXO commitment is invalid - block header indicates {1}, but calculated value is {2}")]
-    BadUTXOCommitment(Hash, Hash, Hash),
+    BadUTXOCommitment(Hash, Blake2Hash, Blake2Hash),
 
     #[error("block {0} accepted ID merkle root is invalid - block header indicates {1}, but calculated value is {2}")]
     BadAcceptedIDMerkleRoot(Hash, Hash, Hash),

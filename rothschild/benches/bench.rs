@@ -8,7 +8,7 @@ use kaspa_consensus_core::{
     Hash,
 };
 
-fn constuct_tx() -> Transaction {
+fn construct_tx() -> Transaction {
     let inputs = vec![TransactionInput {
         previous_outpoint: TransactionOutpoint { transaction_id: Hash::from_bytes([0xFF; 32]), index: 0 },
         signature_script: vec![],
@@ -22,7 +22,7 @@ fn constuct_tx() -> Transaction {
 fn construct_txs_serially() {
     let _ = (0..10000)
         .map(|_| {
-            constuct_tx();
+            construct_tx();
         })
         .collect::<Vec<_>>();
 }
@@ -31,7 +31,7 @@ fn construct_txs_parallel() {
     let _ = (0..10000)
         .into_par_iter()
         .map(|_| {
-            constuct_tx();
+            construct_tx();
         })
         .collect::<Vec<_>>();
 }

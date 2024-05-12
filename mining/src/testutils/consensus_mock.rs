@@ -17,6 +17,7 @@ use kaspa_consensus_core::{
 };
 use kaspa_core::time::unix_now;
 use kaspa_hashes::ZERO_HASH;
+use kaspa_muhash::ZERO_HASH as ZERO_HASH2;
 
 use parking_lot::RwLock;
 use std::{collections::HashMap, sync::Arc};
@@ -89,7 +90,7 @@ impl ConsensusApi for ConsensusMock {
             vec![],
             hash_merkle_root,
             ZERO_HASH,
-            ZERO_HASH,
+            ZERO_HASH2,
             now,
             123456789u32,
             0,

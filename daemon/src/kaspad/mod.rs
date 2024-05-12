@@ -308,7 +308,7 @@ impl Kaspad {
         if let Some(path) = path {
             Ok(version(path.as_str()).await?.to_string())
         } else {
-            Ok("Kaspad binary is not configured. Please use 'node select' command.".to_string())
+            Ok("Pyrin binary is not configured. Please use 'node select' command.".to_string())
         }
     }
 }

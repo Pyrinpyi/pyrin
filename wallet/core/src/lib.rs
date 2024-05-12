@@ -44,11 +44,11 @@
 //! the W3C WebSocket and thus supports RPC.
 //!
 //! JavaScript examples for using this framework can be found at:
-//! <https://github.com/kaspanet/rusty-kaspa/tree/master/wasm/nodejs>
+//! <https://github.com/Pyrinpyi/pyrin/tree/master/wasm/nodejs>
 //!
 //! For pre-built browser-compatible WASM32 redistributables of this
 //! framework please see the releases section of the Rusty Kaspa
-//! repository at <https://github.com/kaspanet/rusty-kaspa/releases>.
+//! repository at <https://github.com/Pyrinpyi/pyrin/releases>.
 //!
 
 extern crate alloc;

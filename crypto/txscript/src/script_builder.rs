@@ -275,7 +275,7 @@ mod tests {
             Test { name: "push OP_TRUE", opcodes: vec![OpTrue], expected: vec![OpTrue] },
             Test { name: "push OP_0", opcodes: vec![Op0], expected: vec![Op0] },
             Test { name: "push OP_1 OP_2", opcodes: vec![Op1, Op2], expected: vec![Op1, Op2] },
-            Test { name: "push OP_BLAKE2B OP_EQUAL", opcodes: vec![OpBlake2b, OpEqual], expected: vec![OpBlake2b, OpEqual] },
+            Test { name: "push OP_BLAKE3 OP_EQUAL", opcodes: vec![OpBlake3, OpEqual], expected: vec![OpBlake3, OpEqual] },
         ];
 
         // Run tests and individually add each op via AddOp.

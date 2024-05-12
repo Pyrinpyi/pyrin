@@ -15,6 +15,7 @@ kaspa-core.workspace = true
 kaspa-notify.workspace = true
 kaspa-rpc-core.workspace = true
 kaspa-utils.workspace = true
+kaspa-muhash.workspace = true
 
 async-channel.workspace = true
 async-stream.workspace = true

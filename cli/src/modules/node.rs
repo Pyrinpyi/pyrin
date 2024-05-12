@@ -20,7 +20,7 @@ impl DefaultSettings for KaspadSettings {
         let mut settings = vec![(Self::Mute, to_value(true).unwrap())];
 
         let root = nw_sys::app::folder();
-        if let Ok(binaries) = kaspa_daemon::locate_binaries(&root, "kaspad").await {
+        if let Ok(binaries) = kaspa_daemon::locate_binaries(&root, "pyrin").await {
             if let Some(path) = binaries.first() {
                 settings.push((Self::Location, to_value(path.to_string_lossy().to_string()).unwrap()));
             }
@@ -39,7 +39,7 @@ pub struct Node {
 impl Default for Node {
     fn default() -> Self {
         Node {
-            settings: SettingsStore::try_new("kaspad").expect("Failed to create node settings store"),
+            settings: SettingsStore::try_new("pyrin").expect("Failed to create node settings store"),
             mute: Arc::new(AtomicBool::new(true)),
             is_running: Arc::new(AtomicBool::new(false)),
         }
@@ -185,13 +185,13 @@ impl Node {
     async fn display_help(self: Arc<Self>, ctx: Arc<KaspaCli>, _argv: Vec<String>) -> Result<()> {
         ctx.term().help(
             &[
-                ("select", "Select Kaspad executable (binary) location"),
-                ("version", "Display Kaspad executable version"),
-                ("start", "Start the local Kaspa node instance"),
-                ("stop", "Stop the local Kaspa node instance"),
-                ("restart", "Restart the local Kaspa node instance"),
-                ("kill", "Kill the local Kaspa node instance"),
-                ("status", "Get the status of the local Kaspa node instance"),
+                ("select", "Select Pyrin executable (binary) location"),
+                ("version", "Display Pyrin executable version"),
+                ("start", "Start the local Pyrin node instance"),
+                ("stop", "Stop the local Pyrin node instance"),
+                ("restart", "Restart the local Pyrin node instance"),
+                ("kill", "Kill the local Pyrin node instance"),
+                ("status", "Get the status of the local Pyrin node instance"),
                 ("mute", "Toggle log output"),
             ],
             None,
@@ -205,10 +205,10 @@ impl Node {
 
         match path {
             None => {
-                let binaries = kaspa_daemon::locate_binaries(root.as_str(), "kaspad").await?;
+                let binaries = kaspa_daemon::locate_binaries(root.as_str(), "pyrin").await?;
 
                 if binaries.is_empty() {
-                    tprintln!(ctx, "No kaspad binaries found");
+                    tprintln!(ctx, "No pyrin binaries found");
                 } else {
                     let binaries = binaries.iter().map(|p| p.display().to_string()).collect::<Vec<_>>();
                     if let Some(selection) = ctx.term().select("Please select a kaspad binary", &binaries).await? {
@@ -245,12 +245,12 @@ impl Node {
                 term.refresh_prompt();
             }
             Event::Exit(_code) => {
-                tprintln!(ctx, "Kaspad has exited");
+                tprintln!(ctx, "Pyrin has exited");
                 self.is_running.store(false, Ordering::SeqCst);
                 term.refresh_prompt();
             }
             Event::Error(error) => {
-                tprintln!(ctx, "{}", style(format!("Kaspad error: {error}")).red());
+                tprintln!(ctx, "{}", style(format!("Pyrin error: {error}")).red());
                 self.is_running.store(false, Ordering::SeqCst);
                 term.refresh_prompt();
             }

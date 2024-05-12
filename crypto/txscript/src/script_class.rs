@@ -75,7 +75,7 @@ impl ScriptClass {
     #[inline(always)]
     pub fn is_pay_to_script_hash(script_public_key: &[u8]) -> bool {
         (script_public_key.len() == 35) && // 3 opcodes number + 32 data
-        (script_public_key[0] == opcodes::codes::OpBlake2b) &&
+        (script_public_key[0] == opcodes::codes::OpBlake3) &&
         (script_public_key[1] == opcodes::codes::OpData32) &&
         (script_public_key[34] == opcodes::codes::OpEqual)
     }

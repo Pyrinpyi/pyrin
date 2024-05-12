@@ -8,7 +8,6 @@ use crate::{
     ScriptSource, TxScriptEngine, TxScriptError, LOCK_TIME_THRESHOLD, MAX_TX_IN_SEQUENCE_NUM, NO_COST_OPCODE,
     SEQUENCE_LOCK_TIME_DISABLED, SEQUENCE_LOCK_TIME_MASK,
 };
-use blake2b_simd::Params;
 use core::cmp::{max, min};
 use kaspa_consensus_core::hashing::sighash_type::SigHashType;
 use kaspa_consensus_core::tx::VerifiableTransaction;
@@ -705,10 +704,11 @@ opcode_list! {
         vm.op_check_multisig_schnorr_or_ecdsa(true)
     }
 
-    opcode OpBlake2b<0xaa, 1>(self, vm) {
+    opcode OpBlake3<0xaa, 1>(self, vm) {
         let [last] = vm.dstack.pop_raw()?;
-        //let hash = blake2b(last.as_slice());
-        let hash = Params::new().hash_length(32).to_state().update(&last).finalize();
+        let mut hasher = blake3::Hasher::new();
+        hasher.update(&last);
+        let hash = hasher.finalize();
         vm.dstack.push(hash.as_bytes().to_vec());
         Ok(())
     }
@@ -2669,22 +2669,22 @@ mod test {
     }
 
     #[test]
-    fn test_opblake2b() {
+    fn test_opblake3() {
         run_success_test_cases(vec![
             TestCase {
-                code: opcodes::OpBlake2b::empty().expect("Should accept empty"),
+                code: opcodes::OpBlake3::empty().expect("Should accept empty"),
                 init: vec![b"".to_vec()],
-                dstack: vec![b"\x0e\x57\x51\xc0\x26\xe5\x43\xb2\xe8\xab\x2e\xb0\x60\x99\xda\xa1\xd1\xe5\xdf\x47\x77\x8f\x77\x87\xfa\xab\x45\xcd\xf1\x2f\xe3\xa8".to_vec()],
+                dstack: vec![b"\xaf\x13\x49\xb9\xf5\xf9\xa1\xa6\xa0\x40\x4d\xea\x36\xdc\xc9\x49\x9b\xcb\x25\xc9\xad\xc1\x12\xb7\xcc\x9a\x93\xca\xe4\x1f\x32\x62".to_vec()],
             },
             TestCase {
-                code: opcodes::OpBlake2b::empty().expect("Should accept empty"),
+                code: opcodes::OpBlake3::empty().expect("Should accept empty"),
                 init: vec![b"abc".to_vec()],
-                dstack: vec![b"\xbd\xdd\x81\x3c\x63\x42\x39\x72\x31\x71\xef\x3f\xee\x98\x57\x9b\x94\x96\x4e\x3b\xb1\xcb\x3e\x42\x72\x62\xc8\xc0\x68\xd5\x23\x19".to_vec()],
+                dstack: vec![b"\x64\x37\xb3\xac\x38\x46\x51\x33\xff\xb6\x3b\x75\x27\x3a\x8d\xb5\x48\xc5\x58\x46\x5d\x79\xdb\x03\xfd\x35\x9c\x6c\xd5\xbd\x9d\x85".to_vec()],
             },
         ]);
 
         run_error_test_cases(vec![ErrorTestCase {
-            code: opcodes::OpBlake2b::empty().expect("Should accept empty"),
+            code: opcodes::OpBlake3::empty().expect("Should accept empty"),
             init: vec![],
             error: TxScriptError::InvalidStackOperation(1, 0),
         }]);

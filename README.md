@@ -1,11 +1,7 @@
 
-<h1>Kaspa On Rust</h1>
+#### Pyrin Node
 
-Welcome to the Rust-based implementation of the Kaspa full-node and its ancillary libraries. This Alpha release serves as a drop-in replacement to the established <a href="https://github.com/kaspanet/kaspad">Golang node</a> (once the rust rewrite is completed), introducing developers to the possibilities of Rust in the Kaspa network's context.
-
-We invite developers and blockchain enthusiasts to collaborate, test, and optimize our Rust implementation. Each line of code here is an opportunity to contribute to the open-source blockchain movement, shaping a platform designed for scalability and speed without compromising on decentralization.
-
-Your feedback, contributions, and issue reports will be integral to evolving this codebase from its Alpha phase into a mature and reliable node in the Kaspa network.
+Pyrin node built on rust, based on [rusty-kaspa](https://github.com/kaspanet/rusty-kaspa)
 
 ## Installation
   <details>
@@ -46,8 +42,8 @@ Your feedback, contributions, and issue reports will be integral to evolving thi
       ```      
   5. Clone the repo
       ```bash
-      git clone https://github.com/kaspanet/rusty-kaspa
-      cd rusty-kaspa
+      git clone https://github.com/Pyrinpyi/pyrin
+      cd pyrin
       ```
   </details>
 
@@ -83,8 +79,8 @@ Your feedback, contributions, and issue reports will be integral to evolving thi
       ```      
   7. Clone the repo
       ```bash
-      git clone https://github.com/kaspanet/rusty-kaspa
-      cd rusty-kaspa
+      git clone https://github.com/Pyrinpyi/pyrin
+      cd pyrin
       ```
  </details>      
 
@@ -143,8 +139,8 @@ To build WASM on MacOS you need to install `llvm` from homebrew (at the time of 
       ```      
   5. Clone the repo
       ```bash
-      git clone https://github.com/kaspanet/rusty-kaspa
-      cd rusty-kaspa
+      git clone https://github.com/Pyrinpyi/pyrin
+      cd pyrin
       ```
 
  </details>   
@@ -172,7 +168,7 @@ To build WASM on MacOS you need to install `llvm` from homebrew (at the time of 
 
 ### Builds & documentation
 
-  - Release builds: https://github.com/kaspanet/rusty-kaspa/releases
+  - Release builds: https://github.com/Pyrinpyi/pyrin/releases
   - Developer builds: https://kaspa.aspectron.org/nightly/downloads/
   - Developer TypeScript documentation: https://kaspa.aspectron.org/docs/
 
@@ -222,12 +218,12 @@ The framework is compatible with all major desktop and mobile browsers.
   **Start a mainnet node**
 
   ```bash
-  cargo run --release --bin kaspad
+  cargo run --release --bin pyrin
   ```
   **Start a testnet node**
 
   ```bash
-cargo run --release --bin kaspad -- --testnet
+cargo run --release --bin pyrin -- --testnet
   ```
 
 <details>
@@ -237,9 +233,9 @@ Using a configuration file
   </summary>
 
   ```bash
-cargo run --release --bin kaspad -- --configfile /path/to/configfile.toml
+cargo run --release --bin pyrin -- --configfile /path/to/configfile.toml
 # or
-cargo run --release --bin kaspad -- -C /path/to/configfile.toml
+cargo run --release --bin pyrin -- -C /path/to/configfile.toml
   ```
   - The config file should be a list of \<CLI argument\> = \<value\> separated by newlines. 
   - Whitespace around the `=` is fine, `arg=value` and `arg = value` are both parsed correctly.
@@ -259,7 +255,7 @@ addpeer = ["10.0.0.1", "1.2.3.4"]
  Pass the `--help` flag to view all possible arguments
 
   ```bash
-cargo run --release --bin kaspad -- --help
+cargo run --release --bin pyrin -- --help
   ```
 </details>
 
@@ -269,7 +265,7 @@ cargo run --release --bin kaspad -- --help
 wRPC
   </summary>
 
-  wRPC subsystem is disabled by default in `kaspad` and can be enabled via:
+  wRPC subsystem is disabled by default in `pyrin` and can be enabled via:
 
 
   JSON protocol:
@@ -315,9 +311,9 @@ Mining
 
 Mining is currently supported only on testnet, so once you've setup a test node, follow these instructions.
 
-1. Download and unzip the latest binaries bundle of [kaspanet/kaspad](https://github.com/kaspanet/kaspad/releases).
+1. Download and unzip the latest binaries bundle of [Pyrinpyi/pyrin](https://github.com/Pyrinpyi/pyrin/releases).
 
-2. In a separate terminal run the kaspanet/kaspad miner:
+2. In a separate terminal run the Pyrinpyi/pyrin miner:
 
     ```
     kaspaminer --testnet --miningaddr kaspatest:qrcqat6l9zcjsu7swnaztqzrv0s7hu04skpaezxk43y4etj8ncwfk308jlcew
@@ -337,7 +333,7 @@ Mining is currently supported only on testnet, so once you've setup a test node,
 
 <summary>Simulation framework (Simpa)</summary>
 
-Logging in `kaspad` and `simpa` can be [filtered](https://docs.rs/env_logger/0.10.0/env_logger/#filtering-results) by either:
+Logging in `pyrin` and `simpa` can be [filtered](https://docs.rs/env_logger/0.10.0/env_logger/#filtering-results) by either:
 
 The current codebase supports a full in-process network simulation, building an actual DAG over virtual time with virtual delay and benchmarking validation time (following the simulation generation). 
 
@@ -361,10 +357,10 @@ cargo run --release --bin simpa -- -t=200 -d=2 -b=8 -n=1000
 
 <summary>Heap Profiling</summary>
 
-Heap-profiling in `kaspad` and `simpa` can be done by enabling `heap` feature and profile using the `--features` argument
+Heap-profiling in `pyrin` and `simpa` can be done by enabling `heap` feature and profile using the `--features` argument
 
 ```bash
-cargo run --bin kaspad --profile heap --features=heap
+cargo run --bin pyrin --profile heap --features=heap
 ```
 
 It will produce `{bin-name}-heap.json` file in the root of the workdir, that can be inspected by the [dhat-viewer](https://github.com/unofficial-mirror/valgrind/tree/master/dhat)
@@ -380,7 +376,7 @@ It will produce `{bin-name}-heap.json` file in the root of the workdir, that can
 **Run unit and most integration tests**
 
 ```bash
-cd rusty-kaspa
+cd pyrin
 cargo test --release
 // or install nextest and run
 ```
@@ -390,7 +386,7 @@ cargo test --release
 **Using nextest**
 
 ```bash
-cd rusty-kaspa
+cd pyrin
 cargo nextest run --release
 ```
 
@@ -404,7 +400,7 @@ cargo nextest run --release
 <summary>Benchmarks</summary>
 
 ```bash
-cd rusty-kaspa
+cd pyrin
 cargo bench
 ```
 
@@ -414,13 +410,13 @@ cargo bench
 
 <summary>Logging</summary>
 
-Logging in `kaspad` and `simpa` can be [filtered](https://docs.rs/env_logger/0.10.0/env_logger/#filtering-results) by either:
+Logging in `pyrin` and `simpa` can be [filtered](https://docs.rs/env_logger/0.10.0/env_logger/#filtering-results) by either:
 
 1. Defining the environment variable `RUST_LOG`
 2. Adding the --loglevel argument like in the following example:
 
     ```
-    (cargo run --bin kaspad -- --loglevel info,kaspa_rpc_core=trace,kaspa_grpc_core=trace,consensus=trace,kaspa_core=trace) 2>&1 | tee ~/rusty-kaspa.log
+    (cargo run --bin kaspad -- --loglevel info,kaspa_rpc_core=trace,kaspa_grpc_core=trace,consensus=trace,kaspa_core=trace) 2>&1 | tee ~/pyrin.log
     ```
     In this command we set the `loglevel` to `INFO`.
 
