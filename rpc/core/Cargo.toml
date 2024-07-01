@@ -50,6 +50,7 @@ uuid.workspace = true
 wasm-bindgen.workspace = true
 workflow-core.workspace = true
 workflow-wasm.workspace = true
+pyo3.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true

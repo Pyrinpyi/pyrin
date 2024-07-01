@@ -1,24 +1,26 @@
-mod hashers;
-mod pow_hashers;
-
-use borsh::{BorshDeserialize, BorshSerialize};
-use kaspa_utils::{
-    hex::{FromHex, ToHex},
-    mem_size::MemSizeEstimator,
-    serde_impl_deser_fixed_bytes_ref, serde_impl_ser_fixed_bytes_ref,
-};
 use std::{
     array::TryFromSliceError,
     fmt::{Debug, Display, Formatter},
     hash::{Hash as StdHash, Hasher as StdHasher},
     str::{self, FromStr},
 };
+
+use borsh::{BorshDeserialize, BorshSerialize};
+use pyo3::{IntoPy, Py, PyAny, Python};
 use wasm_bindgen::prelude::*;
 use workflow_wasm::prelude::*;
 
-pub const HASH_SIZE: usize = 32;
-
 pub use hashers::*;
+use kaspa_utils::{
+    hex::{FromHex, ToHex},
+    mem_size::MemSizeEstimator,
+    serde_impl_deser_fixed_bytes_ref, serde_impl_ser_fixed_bytes_ref,
+};
+
+mod hashers;
+mod pow_hashers;
+
+pub const HASH_SIZE: usize = 32;
 
 // TODO: Check if we use hash more as an array of u64 or of bytes and change the default accordingly
 /// @category General
@@ -40,6 +42,12 @@ impl TryFrom<&[u8]> for Hash {
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         Hash::try_from_slice(value)
+    }
+}
+
+impl IntoPy<Py<PyAny>> for Hash {
+    fn into_py(self, py: Python) -> Py<PyAny> {
+        self.to_string().into_py(py)
     }
 }
 
@@ -207,8 +215,9 @@ pub const EMPTY_MUHASH: Hash = Hash::from_bytes([
 
 #[cfg(test)]
 mod tests {
-    use super::Hash;
     use std::str::FromStr;
+
+    use super::Hash;
 
     #[test]
     fn test_hash_basics() {

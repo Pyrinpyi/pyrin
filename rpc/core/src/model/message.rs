@@ -1,4 +1,5 @@
 use crate::model::*;
+use pyo3::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use kaspa_consensus_core::api::stats::BlockCount;
 use kaspa_core::debug;
@@ -30,6 +31,7 @@ impl SubmitBlockRequest {
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub enum SubmitBlockRejectReason {
     BlockInvalid = 1,
     IsInIBD = 2,
@@ -90,13 +92,16 @@ impl GetBlockTemplateRequest {
 
 #[derive(Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct GetBlockTemplateResponse {
+    #[pyo3(get)]
     pub block: RpcBlock,
 
     /// Whether kaspad thinks that it's synced.
     /// Callers are discouraged (but not forbidden) from solving blocks when kaspad is not synced.
     /// That is because when kaspad isn't in sync with the rest of the network there's a high
     /// chance the block will never be accepted, thus the solving effort would have been wasted.
+    #[pyo3(get)]
     pub is_synced: bool,
 }
 
@@ -129,13 +134,21 @@ pub struct GetInfoRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct GetInfoResponse {
+    #[pyo3(get)]
     pub p2p_id: String,
+    #[pyo3(get)]
     pub mempool_size: u64,
+    #[pyo3(get)]
     pub server_version: String,
+    #[pyo3(get)]
     pub is_utxo_indexed: bool,
+    #[pyo3(get)]
     pub is_synced: bool,
+    #[pyo3(get)]
     pub has_notify_command: bool,
+    #[pyo3(get)]
     pub has_message_id: bool,
 }
 
@@ -161,8 +174,11 @@ pub struct GetPeerAddressesRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct GetPeerAddressesResponse {
+    #[pyo3(get)]
     pub known_addresses: Vec<RpcPeerAddress>,
+    #[pyo3(get)]
     pub banned_addresses: Vec<RpcIpAddress>,
 }
 
@@ -178,7 +194,9 @@ pub struct GetSinkRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct GetSinkResponse {
+    #[pyo3(get)]
     pub sink: RpcHash,
 }
 
@@ -247,7 +265,9 @@ pub struct GetConnectedPeerInfoRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct GetConnectedPeerInfoResponse {
+    #[pyo3(get)]
     pub peer_info: Vec<RpcPeerInfo>,
 }
 
@@ -313,7 +333,9 @@ impl GetSubnetworkRequest {
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct GetSubnetworkResponse {
+    #[pyo3(get)]
     pub gas_limit: u64,
 }
 
@@ -338,9 +360,13 @@ impl GetVirtualChainFromBlockRequest {
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct GetVirtualChainFromBlockResponse {
+    #[pyo3(get)]
     pub removed_chain_block_hashes: Vec<RpcHash>,
+    #[pyo3(get)]
     pub added_chain_block_hashes: Vec<RpcHash>,
+    #[pyo3(get)]
     pub accepted_transaction_ids: Vec<RpcAcceptedTransactionIds>,
 }
 
@@ -370,8 +396,11 @@ impl GetBlocksRequest {
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct GetBlocksResponse {
+    #[pyo3(get)]
     pub block_hashes: Vec<RpcHash>,
+    #[pyo3(get)]
     pub blocks: Vec<RpcBlock>,
 }
 
@@ -393,16 +422,27 @@ pub struct GetBlockDagInfoRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct GetBlockDagInfoResponse {
+    #[pyo3(get)]
     pub network: RpcNetworkId,
+    #[pyo3(get)]
     pub block_count: u64,
+    #[pyo3(get)]
     pub header_count: u64,
+    #[pyo3(get)]
     pub tip_hashes: Vec<RpcHash>,
+    #[pyo3(get)]
     pub difficulty: f64,
+    #[pyo3(get)]
     pub past_median_time: u64, // NOTE: i64 in gRPC protowire
+    #[pyo3(get)]
     pub virtual_parent_hashes: Vec<RpcHash>,
+    #[pyo3(get)]
     pub pruning_point_hash: RpcHash,
+    #[pyo3(get)]
     pub virtual_daa_score: u64,
+    #[pyo3(get)]
     pub sink: RpcHash,
 }
 
@@ -662,8 +702,11 @@ pub struct GetCoinSupplyRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct GetCoinSupplyResponse {
+    #[pyo3(get)]
     pub max_sompi: u64,
+    #[pyo3(get)]
     pub circulating_sompi: u64,
 }
 
@@ -694,73 +737,122 @@ pub struct GetMetricsRequest {
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct ProcessMetrics {
+    #[pyo3(get)]
     pub resident_set_size: u64,
+    #[pyo3(get)]
     pub virtual_memory_size: u64,
+    #[pyo3(get)]
     pub core_num: u32,
+    #[pyo3(get)]
     pub cpu_usage: f32,
+    #[pyo3(get)]
     pub fd_num: u32,
+    #[pyo3(get)]
     pub disk_io_read_bytes: u64,
+    #[pyo3(get)]
     pub disk_io_write_bytes: u64,
+    #[pyo3(get)]
     pub disk_io_read_per_sec: f32,
+    #[pyo3(get)]
     pub disk_io_write_per_sec: f32,
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct ConnectionMetrics {
+    #[pyo3(get)]
     pub borsh_live_connections: u32,
+    #[pyo3(get)]
     pub borsh_connection_attempts: u64,
+    #[pyo3(get)]
     pub borsh_handshake_failures: u64,
+    #[pyo3(get)]
     pub json_live_connections: u32,
+    #[pyo3(get)]
     pub json_connection_attempts: u64,
+    #[pyo3(get)]
     pub json_handshake_failures: u64,
 
+    #[pyo3(get)]
     pub active_peers: u32,
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct BandwidthMetrics {
+    #[pyo3(get)]
     pub borsh_bytes_tx: u64,
+    #[pyo3(get)]
     pub borsh_bytes_rx: u64,
+    #[pyo3(get)]
     pub json_bytes_tx: u64,
+    #[pyo3(get)]
     pub json_bytes_rx: u64,
+    #[pyo3(get)]
     pub p2p_bytes_tx: u64,
+    #[pyo3(get)]
     pub p2p_bytes_rx: u64,
+    #[pyo3(get)]
     pub grpc_bytes_tx: u64,
+    #[pyo3(get)]
     pub grpc_bytes_rx: u64,
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct ConsensusMetrics {
+    #[pyo3(get)]
     pub node_blocks_submitted_count: u64,
+    #[pyo3(get)]
     pub node_headers_processed_count: u64,
+    #[pyo3(get)]
     pub node_dependencies_processed_count: u64,
+    #[pyo3(get)]
     pub node_bodies_processed_count: u64,
+    #[pyo3(get)]
     pub node_transactions_processed_count: u64,
+    #[pyo3(get)]
     pub node_chain_blocks_processed_count: u64,
+    #[pyo3(get)]
     pub node_mass_processed_count: u64,
 
+    #[pyo3(get)]
     pub node_database_blocks_count: u64,
+    #[pyo3(get)]
     pub node_database_headers_count: u64,
 
+    #[pyo3(get)]
     pub network_mempool_size: u64,
+    #[pyo3(get)]
     pub network_tip_hashes_count: u32,
+    #[pyo3(get)]
     pub network_difficulty: f64,
+    #[pyo3(get)]
     pub network_past_median_time: u64,
+    #[pyo3(get)]
     pub network_virtual_parent_hashes_count: u32,
+    #[pyo3(get)]
     pub network_virtual_daa_score: u64,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct GetMetricsResponse {
+    #[pyo3(get)]
     pub server_time: u64,
+    #[pyo3(get)]
     pub process_metrics: Option<ProcessMetrics>,
+    #[pyo3(get)]
     pub connection_metrics: Option<ConnectionMetrics>,
+    #[pyo3(get)]
     pub bandwidth_metrics: Option<BandwidthMetrics>,
+    #[pyo3(get)]
     pub consensus_metrics: Option<ConsensusMetrics>,
 }
 
@@ -782,13 +874,27 @@ pub struct GetServerInfoRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct GetServerInfoResponse {
+    #[pyo3(get)]
     pub rpc_api_version: [u16; 4],
+    #[pyo3(get)]
     pub server_version: String,
     pub network_id: RpcNetworkId,
+    #[pyo3(get)]
     pub has_utxo_index: bool,
+    #[pyo3(get)]
     pub is_synced: bool,
+    #[pyo3(get)]
     pub virtual_daa_score: u64,
+}
+
+#[pymethods]
+impl GetServerInfoResponse {
+    #[getter]
+    pub fn network_id(&self) -> String {
+        self.network_id.to_string()
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
@@ -894,6 +1000,16 @@ pub struct VirtualChainChangedNotification {
     pub removed_chain_block_hashes: Arc<Vec<RpcHash>>,
     pub added_chain_block_hashes: Arc<Vec<RpcHash>>,
     pub accepted_transaction_ids: Arc<Vec<RpcAcceptedTransactionIds>>,
+}
+
+#[pyclass]
+pub struct PyVirtualChainChangedNotification {
+    #[pyo3(get)]
+    pub removed_chain_block_hashes: Vec<RpcHash>,
+    #[pyo3(get)]
+    pub added_chain_block_hashes: Vec<RpcHash>,
+    #[pyo3(get)]
+    pub accepted_transaction_ids: Vec<RpcAcceptedTransactionIds>,
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

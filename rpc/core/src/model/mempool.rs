@@ -1,12 +1,17 @@
 use super::RpcAddress;
 use super::RpcTransaction;
 use borsh::{BorshDeserialize, BorshSerialize};
+use pyo3::pyclass;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[pyclass]
 pub struct RpcMempoolEntry {
+    #[pyo3(get)]
     pub fee: u64,
+    #[pyo3(get)]
     pub transaction: RpcTransaction,
+    #[pyo3(get)]
     pub is_orphan: bool,
 }
 
@@ -17,9 +22,13 @@ impl RpcMempoolEntry {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[pyclass]
 pub struct RpcMempoolEntryByAddress {
+    #[pyo3(get)]
     pub address: RpcAddress,
+    #[pyo3(get)]
     pub sending: Vec<RpcMempoolEntry>,
+    #[pyo3(get)]
     pub receiving: Vec<RpcMempoolEntry>,
 }
 

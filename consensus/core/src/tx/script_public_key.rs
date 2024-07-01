@@ -14,6 +14,7 @@ use std::{
     collections::HashSet,
     str::{self, FromStr},
 };
+use pyo3::{IntoPy, Py, PyAny, Python};
 use wasm_bindgen::prelude::*;
 use workflow_wasm::prelude::*;
 
@@ -74,6 +75,12 @@ impl FromHex for ScriptPublicKey {
 struct ScriptPublicKeyInternal<'a> {
     version: ScriptPublicKeyVersion,
     script: &'a [u8],
+}
+
+impl IntoPy<Py<PyAny>> for ScriptPublicKey {
+    fn into_py(self, py: Python) -> Py<PyAny> {
+        self.script().into_py(py)
+    }
 }
 
 impl Serialize for ScriptPublicKey {

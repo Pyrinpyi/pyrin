@@ -343,7 +343,7 @@ pub const MAINNET_PARAMS: Params = Params {
     // The network was down for three days shortly after launch
     // Three days in seconds = 3 * 24 * 60 * 60 = 259200
     deflationary_phase_daa_score: 15778800 - 259200,
-    pre_deflationary_phase_base_subsidy: 50000000000,
+    pre_deflationary_phase_base_subsidy: 1700000000,
     coinbase_maturity: 100,
     skip_proof_of_work: false,
     max_block_level: 225,
@@ -402,7 +402,7 @@ pub const TESTNET_PARAMS: Params = Params {
     // The network was down for three days shortly after launch
     // Three days in seconds = 3 * 24 * 60 * 60 = 259200
     deflationary_phase_daa_score: 15778800 - 259200,
-    pre_deflationary_phase_base_subsidy: 50000000000,
+    pre_deflationary_phase_base_subsidy: 1700000000,
     coinbase_maturity: 100,
     skip_proof_of_work: false,
     max_block_level: 250,
@@ -566,7 +566,7 @@ pub const DEVNET_PARAMS: Params = Params {
     // The network was down for three days shortly after launch
     // Three days in seconds = 3 * 24 * 60 * 60 = 259200
     deflationary_phase_daa_score: 15778800 - 259200,
-    pre_deflationary_phase_base_subsidy: 50000000000,
+    pre_deflationary_phase_base_subsidy: 1700000000,
     coinbase_maturity: 100,
     skip_proof_of_work: false,
     max_block_level: 250,

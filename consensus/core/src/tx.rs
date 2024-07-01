@@ -1,5 +1,6 @@
 mod script_public_key;
 
+use pyo3::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use kaspa_utils::hex::ToHex;
 use kaspa_utils::mem_size::MemSizeEstimator;
@@ -13,6 +14,7 @@ use std::{
     ops::Range,
     str::{self},
 };
+use pyo3::pyclass;
 use wasm_bindgen::prelude::*;
 
 use crate::{
@@ -32,13 +34,18 @@ pub type TransactionId = kaspa_hashes::Hash;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
 #[wasm_bindgen(inspectable, js_name = TransactionUtxoEntry)]
+#[pyclass]
 pub struct UtxoEntry {
+    #[pyo3(get)]
     pub amount: u64,
     #[wasm_bindgen(js_name = scriptPublicKey, getter_with_clone)]
+    #[pyo3(get)]
     pub script_public_key: ScriptPublicKey,
     #[wasm_bindgen(js_name = blockDaaScore)]
+    #[pyo3(get)]
     pub block_daa_score: u64,
     #[wasm_bindgen(js_name = isCoinbase)]
+    #[pyo3(get)]
     pub is_coinbase: bool,
 }
 
@@ -55,9 +62,12 @@ pub type TransactionIndexType = u32;
 /// Represents a Kaspa transaction outpoint
 #[derive(Eq, Hash, PartialEq, Debug, Copy, Clone, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct TransactionOutpoint {
     #[serde(with = "serde_bytes_fixed_ref")]
+    #[pyo3(get)]
     pub transaction_id: TransactionId,
+    #[pyo3(get)]
     pub index: TransactionIndexType,
 }
 

@@ -199,6 +199,7 @@ use std::{
     hash::{Hash as StdHash, Hasher as StdHasher},
     str::{self, FromStr},
 };
+use pyo3::{IntoPy, Py, PyAny, Python};
 use wasm_bindgen::prelude::*;
 use workflow_wasm::prelude::*;
 
@@ -222,6 +223,12 @@ impl TryFrom<&[u8]> for Hash {
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         Hash::try_from_slice(value)
+    }
+}
+
+impl IntoPy<Py<PyAny>> for Hash {
+    fn into_py(self, py: Python) -> Py<PyAny> {
+        self.to_string().into_py(py)
     }
 }
 

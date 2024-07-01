@@ -1,0 +1,22 @@
+[package]
+name = "python"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "pyrin"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3.workspace = true
+pyo3-asyncio = { version = "0.20", features = ["tokio-runtime"] }
+tokio = "1.9"
+kaspa-bip32.workspace = true
+kaspa-wallet-core.workspace = true
+kaspa-addresses.workspace = true
+kaspa-consensus-core.workspace = true
+kaspa-rpc-core.workspace = true
+kaspa-notify.workspace = true
+kaspa-muhash.workspace = true
+workflow-core.workspace = true
+futures.workspace = true

@@ -325,7 +325,7 @@ mod tests {
     #[ignore] // TODO:
     #[test]
     fn subsidy_test() {
-        const PRE_DEFLATIONARY_PHASE_BASE_SUBSIDY: u64 = 50000000000;
+        const PRE_DEFLATIONARY_PHASE_BASE_SUBSIDY: u64 = 1700000000;
         const DEFLATIONARY_PHASE_INITIAL_SUBSIDY: u64 = 1400000000;
         const SECONDS_PER_MONTH: u64 = 2629800;
         const SECONDS_PER_HALVING: u64 = SECONDS_PER_MONTH * 12;
@@ -485,6 +485,6 @@ mod tests {
 
     /// Return a CoinbaseManager with legacy golang 1 BPS properties
     fn create_legacy_manager() -> CoinbaseManager {
-        CoinbaseManager::new(150, 204, 15778800 - 259200, 50000000000, 1000)
+        CoinbaseManager::new(150, 204, 15778800 - 259200, 1700000000, 1000)
     }
 }

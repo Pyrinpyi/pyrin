@@ -1,10 +1,14 @@
 use borsh::{BorshDeserialize, BorshSerialize};
+use pyo3::pyclass;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize, Default)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct BlockCount {
+    #[pyo3(get)]
     pub header_count: u64,
+    #[pyo3(get)]
     pub block_count: u64,
 }
 

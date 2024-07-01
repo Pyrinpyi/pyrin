@@ -1,4 +1,6 @@
+use core::str::FromStr;
 use crate::{hashing, BlueWorkType};
+use pyo3::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use kaspa_hashes::Hash;
 use kaspa_muhash::Hash as Blake2Hash;
@@ -7,21 +9,34 @@ use serde::{Deserialize, Serialize};
 /// @category Consensus
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[pyclass]
 pub struct Header {
     /// Cached hash
+    #[pyo3(get)]
     pub hash: Hash,
+    #[pyo3(get)]
     pub version: u16,
+    #[pyo3(get)]
     pub parents_by_level: Vec<Vec<Hash>>,
+    #[pyo3(get)]
     pub hash_merkle_root: Hash,
+    #[pyo3(get)]
     pub accepted_id_merkle_root: Hash,
+    #[pyo3(get)]
     pub utxo_commitment: Blake2Hash,
     /// Timestamp is in milliseconds
+    #[pyo3(get)]
     pub timestamp: u64,
+    #[pyo3(get)]
     pub bits: u32,
+    #[pyo3(get)]
     pub nonce: u64,
+    #[pyo3(get)]
     pub daa_score: u64,
     pub blue_work: BlueWorkType,
+    #[pyo3(get)]
     pub blue_score: u64,
+    #[pyo3(get)]
     pub pruning_point: Hash,
 }
 

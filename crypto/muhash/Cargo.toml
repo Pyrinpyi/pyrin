@@ -24,6 +24,7 @@ faster-hex.workspace = true
 borsh.workspace = true
 workflow-wasm.workspace = true
 keccak = { workspace = true, optional = true }
+pyo3.workspace = true
 
 # For the exhuative tests, should only be enabled with release
 rayon = { workspace = true, optional = true }

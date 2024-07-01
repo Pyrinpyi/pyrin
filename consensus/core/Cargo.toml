@@ -42,6 +42,7 @@ wasm-bindgen.workspace = true
 workflow-core.workspace = true
 workflow-log.workspace = true
 workflow-wasm.workspace = true
+pyo3.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

@@ -8,6 +8,7 @@ use std::{
     ops::Deref,
     str::FromStr,
 };
+use pyo3::{IntoPy, Py, PyAny, pyclass, Python};
 use uuid::Uuid;
 use wasm_bindgen::prelude::*;
 
@@ -130,6 +131,12 @@ impl IpAddress {
     }
 }
 
+impl IntoPy<Py<PyAny>> for IpAddress {
+    fn into_py(self, py: Python) -> Py<PyAny> {
+        self.to_string().into_py(py)
+    }
+}
+
 impl From<IpAddr> for IpAddress {
     fn from(ip: IpAddr) -> Self {
         Self(ip)
@@ -223,6 +230,12 @@ impl BorshDeserialize for IpAddress {
 pub struct NetAddress {
     pub ip: IpAddress,
     pub port: u16,
+}
+
+impl IntoPy<Py<PyAny>> for NetAddress {
+    fn into_py(self, py: Python) -> Py<PyAny> {
+        self.to_string().into_py(py)
+    }
 }
 
 impl NetAddress {
@@ -342,6 +355,13 @@ impl PeerId {
         Ok(Uuid::from_slice(bytes)?.into())
     }
 }
+
+impl IntoPy<Py<PyAny>> for PeerId {
+    fn into_py(self, py: Python) -> Py<PyAny> {
+        self.to_string().into_py(py)
+    }
+}
+
 impl From<Uuid> for PeerId {
     fn from(id: Uuid) -> Self {
         Self(id)

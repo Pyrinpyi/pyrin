@@ -1,13 +1,17 @@
-use crate::{opcodes, MAX_SCRIPT_PUBLIC_KEY_VERSION};
-use borsh::{BorshDeserialize, BorshSerialize};
-use kaspa_addresses::Version;
-use kaspa_consensus_core::tx::{ScriptPublicKey, ScriptPublicKeyVersion};
-use serde::{Deserialize, Serialize};
 use std::{
     fmt::{Display, Formatter},
     str::FromStr,
 };
+
+use borsh::{BorshDeserialize, BorshSerialize};
+use pyo3::{IntoPy, Py, PyAny, Python};
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
+
+use kaspa_addresses::Version;
+use kaspa_consensus_core::tx::{ScriptPublicKey, ScriptPublicKeyVersion};
+
+use crate::{MAX_SCRIPT_PUBLIC_KEY_VERSION, opcodes};
 
 #[derive(Error, PartialEq, Eq, Debug, Clone)]
 pub enum Error {
@@ -96,6 +100,12 @@ impl ScriptClass {
             ScriptClass::PubKeyECDSA => MAX_SCRIPT_PUBLIC_KEY_VERSION,
             ScriptClass::ScriptHash => MAX_SCRIPT_PUBLIC_KEY_VERSION,
         }
+    }
+}
+
+impl IntoPy<Py<PyAny>> for ScriptClass {
+    fn into_py(self, py: Python) -> Py<PyAny> {
+        self.to_string().into_py(py)
     }
 }
 

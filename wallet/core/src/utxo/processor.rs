@@ -463,7 +463,7 @@ impl UtxoProcessor {
 
         self.inner.current_daa_score.store(virtual_daa_score, Ordering::SeqCst);
 
-        log_trace!("Connected to kaspad: '{server_version}' on '{server_network_id}';  SYNC: {is_synced}  DAA: {virtual_daa_score}");
+        // log_trace!("Connected to kaspad: '{server_version}' on '{server_network_id}';  SYNC: {is_synced}  DAA: {virtual_daa_score}");
         self.notify(Events::ServerStatus { server_version, is_synced, network_id, url: self.rpc_url() }).await?;
 
         Ok(is_synced)

@@ -1,3 +1,4 @@
+use pyo3::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use kaspa_addresses::Prefix;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
@@ -187,6 +188,12 @@ pub struct NetworkId {
     pub network_type: NetworkType,
     #[wasm_bindgen(js_name = "suffix")]
     pub suffix: Option<u32>,
+}
+
+impl IntoPy<Py<PyAny>> for NetworkId {
+    fn into_py(self, py: Python) -> Py<PyAny> {
+        self.to_string().into_py(py)
+    }
 }
 
 impl NetworkId {

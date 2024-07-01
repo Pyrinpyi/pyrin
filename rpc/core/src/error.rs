@@ -1,8 +1,12 @@
-use kaspa_consensus_core::{subnets::SubnetworkConversionError, tx::TransactionId};
-use kaspa_utils::networking::IpAddress;
 use std::{net::AddrParseError, num::TryFromIntError};
+
+use pyo3::exceptions::PyException;
+use pyo3::PyErr;
 use thiserror::Error;
 use workflow_core::channel::ChannelError;
+
+use kaspa_consensus_core::{subnets::SubnetworkConversionError, tx::TransactionId};
+use kaspa_utils::networking::IpAddress;
 
 use crate::{api::ctl::RpcState, RpcHash, RpcTransactionId, SubmitBlockRejectReason};
 
@@ -127,6 +131,12 @@ pub enum RpcError {
 
     #[error(transparent)]
     ConsensusClient(#[from] kaspa_consensus_client::error::Error),
+}
+
+impl From<RpcError> for PyErr {
+    fn from(err: RpcError) -> PyErr {
+        PyException::new_err(err.to_string())
+    }
 }
 
 impl From<String> for RpcError {

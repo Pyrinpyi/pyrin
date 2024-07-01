@@ -2,6 +2,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::str::{self, FromStr};
 
 use borsh::{BorshDeserialize, BorshSerialize};
+use pyo3::{IntoPy, Py, PyAny, Python};
 use kaspa_utils::hex::{FromHex, ToHex};
 use kaspa_utils::{serde_impl_deser_fixed_bytes_ref, serde_impl_ser_fixed_bytes_ref};
 use thiserror::Error;
@@ -16,6 +17,12 @@ pub struct SubnetworkId([u8; SUBNETWORK_ID_SIZE]);
 impl Debug for SubnetworkId {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("SubnetworkId").field("", &self.to_hex()).finish()
+    }
+}
+
+impl IntoPy<Py<PyAny>> for SubnetworkId {
+    fn into_py(self, py: Python) -> Py<PyAny> {
+        self.to_string().into_py(py)
     }
 }
 

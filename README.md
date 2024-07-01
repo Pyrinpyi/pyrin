@@ -169,18 +169,16 @@ To build WASM on MacOS you need to install `llvm` from homebrew (at the time of 
 ### Builds & documentation
 
   - Release builds: https://github.com/Pyrinpyi/pyrin/releases
-  - Developer builds: https://kaspa.aspectron.org/nightly/downloads/
-  - Developer TypeScript documentation: https://kaspa.aspectron.org/docs/
 
   </details>
 <details>
 
 <summary>
-Kaspa CLI + Wallet
+Pyrin CLI + Wallet
 </summary>
-`kaspa-cli` crate provides cli-driven RPC interface to the node and a
-terminal interface to the Rusty Kaspa Wallet runtime. These wallets are
-compatible with WASM SDK Wallet API and Kaspa NG projects.
+`pyrin-cli` crate provides cli-driven RPC interface to the node and a
+terminal interface to the Pyrin Wallet runtime. These wallets are
+compatible with WASM SDK Wallet API.
 
 
 ```bash
@@ -280,7 +278,7 @@ wRPC
 
   **Sidenote:**
 
-  Rusty Kaspa integrates an optional wRPC
+  Pyrin integrates an optional wRPC
   subsystem. wRPC is a high-performance, platform-neutral, Rust-centric, WebSocket-framed RPC 
   implementation that can use [Borsh](https://borsh.io/) and JSON protocol encoding.
 
@@ -292,10 +290,10 @@ wRPC
   both client and server should be built from the same codebase.  
 
   JSON protocol is based on 
-  Kaspa data structures and is data-structure-version agnostic. You can connect to the
+  Pyrin data structures and is data-structure-version agnostic. You can connect to the
   JSON endpoint using any WebSocket library. Built-in RPC clients for JavaScript and
   TypeScript capable of running in web browsers and Node.js are available as a part of
-  the Kaspa WASM framework.
+  the Pyrin WASM framework.
 
   **wRPC to gRPC Proxy is deprecated and no longer supported.**
 
@@ -416,7 +414,7 @@ Logging in `pyrin` and `simpa` can be [filtered](https://docs.rs/env_logger/0.10
 2. Adding the --loglevel argument like in the following example:
 
     ```
-    (cargo run --bin kaspad -- --loglevel info,kaspa_rpc_core=trace,kaspa_grpc_core=trace,consensus=trace,kaspa_core=trace) 2>&1 | tee ~/pyrin.log
+    (cargo run --bin pyrin -- --loglevel info,kaspa_rpc_core=trace,kaspa_grpc_core=trace,consensus=trace,kaspa_core=trace) 2>&1 | tee ~/pyrin.log
     ```
     In this command we set the `loglevel` to `INFO`.
 

@@ -2,6 +2,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use smallvec::SmallVec;
 use std::fmt::{Display, Formatter};
+use pyo3::{IntoPy, Py, PyAny, Python};
 use thiserror::Error;
 use wasm_bindgen::prelude::*;
 use workflow_wasm::{
@@ -202,6 +203,12 @@ impl std::fmt::Debug for Address {
         } else {
             write!(f, "{} ({})", String::from(self), self.version)
         }
+    }
+}
+
+impl IntoPy<Py<PyAny>> for Address {
+    fn into_py(self, py: Python) -> Py<PyAny> {
+        self.to_string().into_py(py)
     }
 }
 

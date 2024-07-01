@@ -58,6 +58,7 @@ members = [
     "metrics/core",
     "metrics/perf_monitor",
     "utils/alloc",
+    "sdk/python",
 ]
 
 [workspace.package]
@@ -282,6 +283,9 @@ workflow-rpc = { version = "0.12.1" }
 workflow-store = { version = "0.12.1" }
 workflow-terminal = { version = "0.12.1" }
 workflow-wasm = { version = "0.12.1" }
+
+# python binding
+pyo3 = { version = "0.20", features = ["extension-module"] }
 
 # if below is enabled, this means that there is an ongoing work
 # on the workflow-rs crate. This requires that you clone workflow-rs
