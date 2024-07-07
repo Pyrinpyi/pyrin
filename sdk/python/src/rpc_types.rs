@@ -6,9 +6,9 @@ use pyo3::types::{PyDict, PyList};
 
 use kaspa_consensus_core::{BlueWorkType, Hash};
 use kaspa_consensus_core::header::Header;
-use kaspa_consensus_core::tx::TransactionId;
+use kaspa_consensus_core::tx::{ScriptPublicKey, TransactionId};
 use kaspa_muhash::Hash as Blake2Hash;
-use kaspa_rpc_core::{RpcBlock, RpcSubnetworkId, RpcTransaction, RpcTransactionInput, RpcTransactionOutpoint};
+use kaspa_rpc_core::{RpcBlock, RpcScriptPublicKey, RpcSubnetworkId, RpcTransaction, RpcTransactionInput, RpcTransactionOutpoint, RpcTransactionOutput};
 
 use crate::rpc_core::RpcCore;
 
@@ -109,26 +109,30 @@ pub fn py_rpc_transaction_type(transaction: &PyAny) -> PyResult<RpcTransaction> 
         })
     }).collect::<PyResult<Vec<RpcTransactionInput>>>()?;
 
-    // TODO:
-    // let outputs = RpcCore::get_dict_item(transaction_dict, "outputs").downcast::<PyList>()?;
-    // let outputs = outputs.iter().map(|output| {
-    //     let parent = Some("transactions.outputs");
-    //     let output = output.downcast::<PyDict>()?;
-    //     Ok(
-    //         RpcTransactionOutput {
-    //             value: get_dict_item!(output, "value", parent).extract::<u64>()?,
-    //             script_public_key: RpcScriptPublicKey::from_vec(),
-    //             verbose_data: None, // TODO: tx.get_item("verbose_data")?,
-    //         }
-    //     )
-    // }).collect::<PyResult<Vec<RpcTransactionOutput>>>()?;
+    let outputs = RpcCore::get_dict_item(transaction_dict, "outputs").downcast::<PyList>()?;
+    let outputs = outputs.iter().map(|output| {
+        let parent = Some("transactions.outputs");
+        let output = output.downcast::<PyDict>()?;
+        let script_public_key = get_dict_item!(output, "script_public_key", parent).downcast::<PyDict>()?;
+        let script_public_key_parent = Some("transactions.outputs.script_public_key");
+
+        Ok(
+            RpcTransactionOutput {
+                value: get_dict_item!(output, "value", parent).extract::<u64>()?,
+                script_public_key: RpcScriptPublicKey::from_vec(
+                    get_dict_item!(script_public_key, "version", script_public_key_parent).extract::<u16>()?,
+                    get_dict_item_as_vec_u8!(script_public_key, "script", script_public_key_parent)
+                ),
+                verbose_data: None, // TODO: tx.get_item("verbose_data")?,
+            }
+        )
+    }).collect::<PyResult<Vec<RpcTransactionOutput>>>()?;
 
     Ok(
         RpcTransaction {
             version: get_dict_item!(transaction_dict, "version", parent).extract::<u16>()?,
-            inputs: inputs,
-            // outputs: get_dict_item_as_vec_vec_hash!(transaction_dict, "outputs", parent),
-            outputs: vec![],
+            inputs,
+            outputs,
             lock_time: get_dict_item!(transaction_dict, "lock_time", parent).extract::<u64>()?,
             subnetwork_id: RpcSubnetworkId::from_str(get_dict_item!(transaction_dict, "subnetwork_id", parent).to_string().as_str())
                 .map_err(|_| PyErr::new::<PyKeyError, _>(format!("Invalid {}.subnetwork_id", parent.unwrap())))?,

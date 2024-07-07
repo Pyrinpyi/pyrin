@@ -5002,8 +5002,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "python"
-version = "0.1.0"
+name = "pyrin-sdk"
+version = "0.1.2"
 dependencies = [
  "futures",
  "kaspa-addresses",

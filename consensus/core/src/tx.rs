@@ -1,26 +1,28 @@
-mod script_public_key;
-
-use pyo3::prelude::*;
-use borsh::{BorshDeserialize, BorshSerialize};
-use kaspa_utils::hex::ToHex;
-use kaspa_utils::mem_size::MemSizeEstimator;
-use kaspa_utils::{serde_bytes, serde_bytes_fixed_ref};
-pub use script_public_key::{scriptvec, ScriptPublicKey, ScriptPublicKeyVersion, ScriptPublicKeys, ScriptVec, SCRIPT_VECTOR_SIZE};
-use serde::{Deserialize, Serialize};
-use std::sync::atomic::AtomicU64;
-use std::sync::atomic::Ordering::SeqCst;
 use std::{
     fmt::Display,
     ops::Range,
     str::{self},
 };
+use std::sync::atomic::AtomicU64;
+use std::sync::atomic::Ordering::SeqCst;
+
+use borsh::{BorshDeserialize, BorshSerialize};
+use pyo3::prelude::*;
 use pyo3::pyclass;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
+
+use kaspa_utils::{serde_bytes, serde_bytes_fixed_ref};
+use kaspa_utils::hex::ToHex;
+use kaspa_utils::mem_size::MemSizeEstimator;
+pub use script_public_key::{SCRIPT_VECTOR_SIZE, ScriptPublicKey, ScriptPublicKeys, ScriptPublicKeyVersion, scriptvec, ScriptVec};
 
 use crate::{
     hashing,
     subnets::{self, SubnetworkId},
 };
+
+mod script_public_key;
 
 /// COINBASE_TRANSACTION_INDEX is the index of the coinbase transaction in every block
 pub const COINBASE_TRANSACTION_INDEX: usize = 0;
@@ -455,9 +457,11 @@ pub type SignableTransaction = MutableTransaction<Transaction>;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use consensus_core::subnets::SUBNETWORK_ID_COINBASE;
     use smallvec::smallvec;
+
+    use consensus_core::subnets::SUBNETWORK_ID_COINBASE;
+
+    use super::*;
 
     fn test_transaction() -> Transaction {
         let script_public_key = ScriptPublicKey::new(

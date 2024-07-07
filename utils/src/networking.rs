@@ -1,14 +1,15 @@
-// #![allow(dead_code)]
-use borsh::{BorshDeserialize, BorshSerialize};
-use ipnet::IpNet;
-use serde::{Deserialize, Serialize};
 use std::{
     fmt::Display,
     net::{AddrParseError, IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     ops::Deref,
     str::FromStr,
 };
-use pyo3::{IntoPy, Py, PyAny, pyclass, Python};
+
+// #![allow(dead_code)]
+use borsh::{BorshDeserialize, BorshSerialize};
+use ipnet::IpNet;
+use pyo3::{IntoPy, Py, PyAny, Python};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use wasm_bindgen::prelude::*;
 
@@ -416,8 +417,9 @@ impl BorshDeserialize for PeerId {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::str::FromStr;
+
+    use super::*;
 
     #[test]
     fn test_ip_address_borsh() {

@@ -95,7 +95,8 @@ class TestWallet(unittest.IsolatedAsyncioTestCase):
     async def test_submit_block(self):
         rpc = pyrin.RPC()
         await rpc.connect()
-        error = await rpc.submit_block({
+
+        dummy = {
             "header": {
                 "hash": "bb149e176aecf79a60a22f57bc1c50b145100f7b6ec8bcb817070907a7ef44ec",
                 "parents_by_level": [["bb149e176aecf79a60a22f57bc1c50b145100f7b6ec8bcb817070907a7ef44ec"]],
@@ -123,7 +124,13 @@ class TestWallet(unittest.IsolatedAsyncioTestCase):
                     "sig_op_count": 0,
                     "verbose_data": None,
                 }],
-                "outputs": [],
+                "outputs": [{
+                    "script_public_key": {
+                        "version": 0,
+                        "script": list(b" \x1aP\x9d\xde\xa1\x81\x93\xbd&}\x01\x07\xb2(zv\x1f\x89f\xe9 \xf4\x9c\xc5\xfb\xfb\t\xcd\xfd\x0fg\xfe\xac"),
+                    },
+                    "value": 1,
+                }],
                 "lock_time": 1,
                 "subnetwork_id": "0100000000000000000000000000000000000000",
                 "gas": 1,
@@ -141,7 +148,13 @@ class TestWallet(unittest.IsolatedAsyncioTestCase):
             # "hash": "bb149e176aecf79a60a22f57bc1c50b145100f7b6ec8bcb817070907a7ef44ec",
             # "transactions": 1,
             # "verbose_data": 1,
-        }, True) # allow_non_daa_blocks
+        }
+
+        # error = await rpc.submit_block(dummy, True) # allow_non_daa_blocks
+
+        # Submit with RPC Block
+        result = await rpc.get_block_template("pyrin:qzn54t6vpasykvudztupcpwn2gelxf8y9p84szksr73me39mzf69uaalnymtx", [])
+        error = await rpc.submit_rpc_block(result.block, True) # allow_non_daa_blocks
 
         if error > 0:
             # error == 1: block invalid
@@ -150,21 +163,24 @@ class TestWallet(unittest.IsolatedAsyncioTestCase):
         else:
             print("Block submitted successfully")
 
-    @unittest.skip # TODO:
+    # @unittest.skip # TODO:
     async def test_get_block_template(self):
         rpc = pyrin.RPC()
         await rpc.connect()
         result = await rpc.get_block_template("pyrin:qzn54t6vpasykvudztupcpwn2gelxf8y9p84szksr73me39mzf69uaalnymtx", [])
-        print("result:", result.transactions[0].version)
-        print("subnetwork_id:", result.transactions[0].subnetwork_id)
-        print("verbose_data:", result.transactions[0].verbose_data)
-        # print("result:", result.transactions[0].inputs[0].previous_outpoint.transaction_id)
-        # print("result:", result.transactions[0].inputs[0].previous_outpoint.index)
-        print("script_public_key:", result.transactions[0].outputs[0].script_public_key)
-        print("result:", result.transactions[0].outputs[0].verbose_data)
-        # print("result:", result.transactions[0].outputs[0].verbose_data.script_public_key_type) # TODO:
-        # print("result:", result.transactions[0].outputs[0].verbose_data.script_public_key_address) # TODO:
-        print("value:", result.transactions[0].outputs[0].value)
+        block = result.block
+        is_synced = result.is_synced
+        print("result:", block.transactions[0].version)
+        print("subnetwork_id:", block.transactions[0].subnetwork_id)
+        print("verbose_data:", block.transactions[0].verbose_data)
+        # print("result:", block.transactions[0].inputs[0].previous_outpoint.transaction_id)
+        # print("result:", block.transactions[0].inputs[0].previous_outpoint.index)
+        print("script_public_key:", block.transactions[0].outputs[0].script_public_key)
+        print("value:", block.transactions[0].outputs[0].value)
+        print("result:", block.transactions[0].outputs[0].verbose_data)
+        # print("result:", block.transactions[0].outputs[0].verbose_data.script_public_key_type) # TODO:
+        # print("result:", block.transactions[0].outputs[0].verbose_data.script_public_key_address) # TODO:
+        print("value:", block.transactions[0].outputs[0].value)
 
     @unittest.skip
     async def test_get_peer_addresses(self):
@@ -216,7 +232,7 @@ class TestWallet(unittest.IsolatedAsyncioTestCase):
         await rpc.connect()
         await rpc.add_peer("192.168.1.2:13111", True)
 
-    @unittest.skip
+    # @unittest.skip
     async def test_submit_transaction(self):
         rpc = pyrin.RPC()
         await rpc.connect()
@@ -237,6 +253,13 @@ class TestWallet(unittest.IsolatedAsyncioTestCase):
                 "sequence": 0,
                 "sig_op_count": 0,
                 "verbose_data": None,
+            }],
+            "outputs": [{
+                "script_public_key": {
+                    "version": 0,
+                    "script": list(b" \x1aP\x9d\xde\xa1\x81\x93\xbd&}\x01\x07\xb2(zv\x1f\x89f\xe9 \xf4\x9c\xc5\xfb\xfb\t\xcd\xfd\x0fg\xfe\xac"),
+                },
+                "value": 100000000,
             }],
         }, True)
 
@@ -432,7 +455,7 @@ class TestWallet(unittest.IsolatedAsyncioTestCase):
         hashes_per_second = await rpc.estimate_network_hashes_per_second(1000)
         print("hashes_per_second:", hashes_per_second)
 
-    # @unittest.skip
+    @unittest.skip
     async def test_notifier(self):
         rpc = pyrin.RPC()
         success = await rpc.connect()

@@ -317,7 +317,23 @@ impl RPC {
 
         pyo3_asyncio::tokio::future_into_py(py, async move {
 
-            // println!("hash: {}", hash);
+            let result = client.rpc_api().submit_block(block, allow_non_daa_blocks).await.unwrap().report;
+
+            let result = match result {
+                kaspa_rpc_core::SubmitBlockReport::Success => 0,
+                kaspa_rpc_core::SubmitBlockReport::Reject(kaspa_rpc_core::SubmitBlockRejectReason::BlockInvalid) => 1,
+                kaspa_rpc_core::SubmitBlockReport::Reject(kaspa_rpc_core::SubmitBlockRejectReason::IsInIBD) => 2,
+                kaspa_rpc_core::SubmitBlockReport::Reject(kaspa_rpc_core::SubmitBlockRejectReason::RouteIsFull) => 0,
+            };
+
+            Ok(result)
+        })
+    }
+
+    pub fn submit_rpc_block<'a>(&mut self, py: Python<'a>, block: RpcBlock, allow_non_daa_blocks: bool) -> PyResult<&'a PyAny> {
+        let client = Arc::new(self.client.clone().unwrap());
+
+        pyo3_asyncio::tokio::future_into_py(py, async move {
 
             let result = client.rpc_api().submit_block(block, allow_non_daa_blocks).await.unwrap().report;
 
@@ -329,9 +345,6 @@ impl RPC {
             };
 
             Ok(result)
-            // Ok(result.is_success())
-            // Ok(true)
-            // Ok(hash)
         })
     }
 

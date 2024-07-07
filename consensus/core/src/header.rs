@@ -1,10 +1,11 @@
-use core::str::FromStr;
-use crate::{hashing, BlueWorkType};
-use pyo3::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
+use pyo3::prelude::*;
+use serde::{Deserialize, Serialize};
+
 use kaspa_hashes::Hash;
 use kaspa_muhash::Hash as Blake2Hash;
-use serde::{Deserialize, Serialize};
+
+use crate::{BlueWorkType, hashing};
 
 /// @category Consensus
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
@@ -110,9 +111,11 @@ impl Header {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use kaspa_math::Uint192;
     use serde_json::Value;
+
+    use kaspa_math::Uint192;
+
+    use super::*;
 
     #[test]
     fn test_header_ser() {

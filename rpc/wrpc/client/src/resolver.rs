@@ -48,8 +48,9 @@ pub struct Resolver {
 
 impl Default for Resolver {
     fn default() -> Self {
-        let toml = include_str!("../Resolvers.toml");
-        let urls = try_parse_resolvers(toml).expect("TOML: Unable to parse RPC Resolver list");
+        // let toml = include_str!("../Resolvers.toml");
+        // let urls = try_parse_resolvers(toml).expect("TOML: Unable to parse RPC Resolver list");
+        let urls = vec![];
         Self { inner: Arc::new(Inner::new(urls)) }
     }
 }

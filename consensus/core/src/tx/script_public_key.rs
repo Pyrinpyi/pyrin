@@ -79,7 +79,10 @@ struct ScriptPublicKeyInternal<'a> {
 
 impl IntoPy<Py<PyAny>> for ScriptPublicKey {
     fn into_py(self, py: Python) -> Py<PyAny> {
-        self.script().into_py(py)
+        let mut hex = vec![0u8; self.script.len() * 2 + 4];
+        faster_hex::hex_encode(&self.version.to_be_bytes(), &mut hex).unwrap();
+        faster_hex::hex_encode(&self.script, &mut hex[4..]).unwrap();
+        unsafe { std::str::from_utf8_unchecked(&hex).to_string().into_py(py) }
     }
 }
 
