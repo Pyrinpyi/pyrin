@@ -1,7 +1,7 @@
 use crate::constants::{MAX_SOMPI, TX_VERSION};
 use kaspa_consensus_core::tx::Transaction;
 use std::collections::HashSet;
-
+use kaspa_consensus_core::config::bps::MainnetHardforkBps;
 use super::{
     errors::{TxResult, TxRuleError},
     TransactionValidator,
@@ -37,7 +37,7 @@ impl TransactionValidator {
         if !tx.inputs.is_empty() {
             return Err(TxRuleError::CoinbaseHasInputs(tx.inputs.len()));
         }
-        let outputs_limit = self.ghostdag_k as u64 + 2;
+        let outputs_limit = MainnetHardforkBps::ghostdag_k() as u64 + 2;
         if tx.outputs.len() as u64 > outputs_limit {
             return Err(TxRuleError::CoinbaseTooManyOutputs(tx.outputs.len(), outputs_limit));
         }

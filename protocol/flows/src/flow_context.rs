@@ -56,6 +56,7 @@ use tokio::sync::{
 };
 use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
 use uuid::Uuid;
+use kaspa_consensus_core::config::bps::MainnetHardforkBps;
 
 /// The P2P protocol version. Currently the only one supported.
 const PROTOCOL_VERSION: u32 = 6;
@@ -100,7 +101,7 @@ impl BlockEventLogger {
 
     /// Start the logger listener. Must be called from an async tokio context
     fn start(&self) {
-        let chunk_limit = self.bps * 10; // We prefer that the 1 sec timeout forces the log, but nonetheless still want a reasonable bound on each chunk
+        let chunk_limit = (MainnetHardforkBps::bps() * 10) as usize; // We prefer that the 1 sec timeout forces the log, but nonetheless still want a reasonable bound on each chunk
         let receiver = self.receiver.lock().take().expect("expected to be called once");
         tokio::spawn(async move {
             let chunk_stream = UnboundedReceiverStream::new(receiver).chunks_timeout(chunk_limit, Duration::from_secs(1));
@@ -306,11 +307,11 @@ impl FlowContext {
     ) -> Self {
         let hub = Hub::new();
 
-        let orphan_resolution_range = BASELINE_ORPHAN_RESOLUTION_RANGE + (config.bps() as f64).log2().ceil() as u32;
+        let orphan_resolution_range = BASELINE_ORPHAN_RESOLUTION_RANGE + (MainnetHardforkBps::bps() as f64).log2().ceil() as u32;
 
         // The maximum amount of orphans allowed in the orphans pool. This number is an approximation
         // of how many orphans there can possibly be on average bounded by an upper bound.
-        let max_orphans = (2u64.pow(orphan_resolution_range) as usize * config.ghostdag_k as usize).min(MAX_ORPHANS_UPPER_BOUND);
+        let max_orphans = (2u64.pow(orphan_resolution_range) as usize * MainnetHardforkBps::ghostdag_k() as usize).min(MAX_ORPHANS_UPPER_BOUND);
         Self {
             inner: Arc::new(FlowContextInner {
                 node_id: Uuid::new_v4().into(),
@@ -327,7 +328,7 @@ impl FlowContext {
                 mining_manager,
                 tick_service,
                 notification_root,
-                block_event_logger: if config.bps() > 1 { Some(BlockEventLogger::new(config.bps() as usize)) } else { None },
+                block_event_logger: if MainnetHardforkBps::bps() > 1 { Some(BlockEventLogger::new(MainnetHardforkBps::bps() as usize)) } else { None },
                 orphan_resolution_range,
                 max_orphans,
                 config,
@@ -336,7 +337,7 @@ impl FlowContext {
     }
 
     pub fn block_invs_channel_size(&self) -> usize {
-        self.config.bps() as usize * Router::incoming_flow_baseline_channel_size()
+        MainnetHardforkBps::bps() as usize * Router::incoming_flow_baseline_channel_size()
     }
 
     pub fn orphan_resolution_range(&self) -> u32 {

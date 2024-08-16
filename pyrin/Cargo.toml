@@ -46,6 +46,7 @@ dhat = { workspace = true, optional = true }
 serde.workspace = true
 dirs.workspace = true
 futures-util.workspace = true
+futures.workspace = true
 log.workspace = true
 num_cpus.workspace = true
 rand.workspace = true

@@ -17,7 +17,7 @@ use crate::{flow_context::FlowContext, flow_trait::Flow};
 use kaspa_p2p_lib::{KaspadMessagePayloadType, Router, SharedIncomingRoute};
 use kaspa_utils::channel;
 use std::sync::Arc;
-
+use kaspa_consensus_core::config::bps::MainnetHardforkBps;
 use crate::v6::request_pruning_point_and_anticone::PruningPointAndItsAnticoneRequestsFlow;
 
 pub(crate) mod request_pruning_point_and_anticone;
@@ -128,7 +128,7 @@ pub fn register(ctx: FlowContext, router: Arc<Router>) -> Vec<Box<dyn Flow>> {
     let invs_route = router.subscribe_with_capacity(vec![KaspadMessagePayloadType::InvRelayBlock], ctx.block_invs_channel_size());
     let shared_invs_route = SharedIncomingRoute::new(invs_route);
 
-    let num_relay_flows = (ctx.config.bps() as usize / 2).max(1);
+    let num_relay_flows = (MainnetHardforkBps::bps() as usize / 2).max(1);
     flows.extend((0..num_relay_flows).map(|_| {
         Box::new(HandleRelayInvsFlow::new(
             ctx.clone(),

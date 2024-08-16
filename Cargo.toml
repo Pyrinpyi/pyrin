@@ -63,7 +63,7 @@ members = [
 
 [workspace.package]
 rust-version = "1.78.0"
-version = "0.14.1"
+version = "0.14.2"
 authors = ["Pyrin developers", "Kaspa developers"]
 license = "ISC"
 repository = "https://github.com/Pyrinpyi/pyrin"

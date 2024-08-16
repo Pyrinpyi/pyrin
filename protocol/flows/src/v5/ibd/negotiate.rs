@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use super::IbdFlow;
 use kaspa_consensus_core::blockstatus::BlockStatus;
+use kaspa_consensus_core::config::bps::MainnetHardforkBps;
 use kaspa_consensusmanager::ConsensusProxy;
 use kaspa_core::{debug, warn};
 use kaspa_hashes::Hash;
@@ -131,7 +132,7 @@ impl IbdFlow {
                         self.router, negotiation_restart_counter
                     )));
                 }
-                if negotiation_restart_counter > self.ctx.config.bps() {
+                if negotiation_restart_counter > MainnetHardforkBps::bps() {
                     // bps is just an intuitive threshold here
                     warn!("IBD chain negotiation with syncer {} restarted {} times", self.router, negotiation_restart_counter);
                 } else {

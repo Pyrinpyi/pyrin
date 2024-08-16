@@ -110,6 +110,7 @@ pub mod perf {
     //! The constants in this module should all be revisited if mainnet consensus parameters change.
     //!
 
+    use consensus_core::config::bps::MainnetHardforkBps;
     use crate::config::params::Params;
 
     /// The default target depth for reachability reindexes.
@@ -167,7 +168,7 @@ pub mod perf {
     impl PerfParams {
         pub fn adjust_to_consensus_params(&mut self, consensus_params: &Params) {
             // Allow caching up to 10x over the baseline
-            self.block_data_cache_size *= consensus_params.bps().clamp(1, 10) as usize;
+            self.block_data_cache_size *= MainnetHardforkBps::bps().clamp(10, 100) as usize;
         }
     }
 }

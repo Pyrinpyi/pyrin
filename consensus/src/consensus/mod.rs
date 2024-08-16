@@ -38,28 +38,11 @@ use crate::{
     },
     processes::window::{WindowManager, WindowType},
 };
-use kaspa_consensus_core::{
-    acceptance_data::AcceptanceData,
-    api::{stats::BlockCount, BlockValidationFutures, ConsensusApi, ConsensusStats},
-    block::{Block, BlockTemplate, TemplateBuildMode, TemplateTransactionSelector, VirtualStateApproxId},
-    blockhash::BlockHashExtensions,
-    blockstatus::BlockStatus,
-    coinbase::MinerData,
-    daa_score_timestamp::DaaScoreTimestamp,
-    errors::{
-        coinbase::CoinbaseResult,
-        consensus::{ConsensusError, ConsensusResult},
-        tx::TxResult,
-    },
-    errors::{difficulty::DifficultyError, pruning::PruningImportError},
-    header::Header,
-    muhash::MuHashExtensions,
-    network::NetworkType,
-    pruning::{PruningPointProof, PruningPointTrustedData, PruningPointsList},
-    trusted::{ExternalGhostdagData, TrustedBlock},
-    tx::{MutableTransaction, Transaction, TransactionOutpoint, UtxoEntry},
-    BlockHashSet, BlueWorkType, ChainPath,
-};
+use kaspa_consensus_core::{acceptance_data::AcceptanceData, api::{stats::BlockCount, BlockValidationFutures, ConsensusApi, ConsensusStats}, block::{Block, BlockTemplate, TemplateBuildMode, TemplateTransactionSelector, VirtualStateApproxId}, blockhash::BlockHashExtensions, blockstatus::BlockStatus, coinbase::MinerData, daa_score_timestamp::DaaScoreTimestamp, errors::{
+    coinbase::CoinbaseResult,
+    consensus::{ConsensusError, ConsensusResult},
+    tx::TxResult,
+}, errors::{difficulty::DifficultyError, pruning::PruningImportError}, header::Header, muhash::MuHashExtensions, network::NetworkType, pruning::{PruningPointProof, PruningPointTrustedData, PruningPointsList}, trusted::{ExternalGhostdagData, TrustedBlock}, tx::{MutableTransaction, Transaction, TransactionOutpoint, UtxoEntry}, BlockHashSet, BlueWorkType, ChainPath, KType};
 use kaspa_consensus_notify::root::ConsensusNotificationRoot;
 
 use crossbeam_channel::{
@@ -872,7 +855,7 @@ impl ConsensusApi for Consensus {
             .collect())
     }
 
-    fn get_trusted_block_associated_ghostdag_data_block_hashes(&self, hash: Hash) -> ConsensusResult<Vec<Hash>> {
+    fn get_trusted_block_associated_ghostdag_data_block_hashes(&self, hash: Hash, ghostdag_k: KType) -> ConsensusResult<Vec<Hash>> {
         let _guard = self.pruning_lock.blocking_read();
         self.validate_block_exists(hash)?;
 
@@ -886,7 +869,7 @@ impl ConsensusApi for Consensus {
         // back and then we would be able to assert we actually got `k + 1` blocks, however we choose to
         // simply ignore, since if the data was truly missing we wouldn't accept the staging consensus in
         // the first place
-        Ok(self.services.pruning_proof_manager.get_ghostdag_chain_k_depth(hash))
+        Ok(self.services.pruning_proof_manager.get_ghostdag_chain_k_depth(hash, ghostdag_k))
     }
 
     fn create_block_locator_from_pruning_point(&self, high: Hash, limit: usize) -> ConsensusResult<Vec<Hash>> {

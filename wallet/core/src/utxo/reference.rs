@@ -4,6 +4,7 @@
 
 use crate::imports::*;
 pub use kaspa_consensus_client::{TryIntoUtxoEntryReferences, UtxoEntryReference};
+use kaspa_consensus_core::config::bps::MainnetHardforkBps;
 
 pub enum Maturity {
     /// Coinbase UTXO that has not reached stasis period.
@@ -34,14 +35,15 @@ pub trait UtxoEntryReferenceExtension {
 impl UtxoEntryReferenceExtension for UtxoEntryReference {
     fn maturity(&self, params: &NetworkParams, current_daa_score: u64) -> Maturity {
         if self.is_coinbase() {
-            if self.block_daa_score() + params.coinbase_transaction_stasis_period_daa > current_daa_score {
+            if self.block_daa_score() + params.coinbase_transaction_stasis_period_daa * MainnetHardforkBps::get_bps(current_daa_score) > current_daa_score {
                 Maturity::Stasis
-            } else if self.block_daa_score() + params.coinbase_transaction_maturity_period_daa > current_daa_score {
+            } else if self.block_daa_score() + MainnetHardforkBps::coinbase_maturity(current_daa_score) > current_daa_score {
                 Maturity::Pending
             } else {
                 Maturity::Confirmed
             }
-        } else if self.block_daa_score() + params.user_transaction_maturity_period_daa > current_daa_score {
+        } else if self.block_daa_score() +
+            params.user_transaction_maturity_period_daa * MainnetHardforkBps::get_bps(current_daa_score) > current_daa_score {
             Maturity::Pending
         } else {
             Maturity::Confirmed

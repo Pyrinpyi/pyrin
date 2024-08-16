@@ -837,6 +837,7 @@ impl KaspadGoParams {
             skip_proof_of_work: self.SkipProofOfWork,
             max_block_level: self.MaxBlockLevel,
             pruning_proof_m: self.PruningProofM,
+            hf_activation_daa_score: 0,
         }
     }
 }

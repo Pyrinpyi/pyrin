@@ -11,6 +11,7 @@ use workflow_wasm::utils::try_get_js_value_prop;
 
 pub use kaspa_consensus_core::tx::TransactionId;
 use zeroize::Zeroize;
+use kaspa_consensus_core::config::bps::MainnetHardforkBps;
 
 #[wasm_bindgen(typescript_custom_section)]
 const ITransactionRecord: &'static str = r#"
@@ -378,9 +379,9 @@ impl TransactionRecord {
         let params = NetworkParams::from(self.network_id);
 
         let maturity = if self.is_coinbase() {
-            params.coinbase_transaction_maturity_period_daa
+            MainnetHardforkBps::coinbase_maturity(current_daa_score)
         } else {
-            params.user_transaction_maturity_period_daa
+            params.user_transaction_maturity_period_daa * MainnetHardforkBps::get_bps(current_daa_score)
         };
 
         if current_daa_score < self.block_daa_score() + maturity {
@@ -431,9 +432,9 @@ impl TransactionRecord {
     pub fn maturity_progress(&self, current_daa_score: u64) -> Option<f64> {
         let params = NetworkParams::from(self.network_id);
         let maturity = if self.is_coinbase() {
-            params.coinbase_transaction_maturity_period_daa
+            MainnetHardforkBps::coinbase_maturity(current_daa_score)
         } else {
-            params.user_transaction_maturity_period_daa
+            MainnetHardforkBps::coinbase_maturity(current_daa_score) / 10 /* user_transaction_maturity_period_daa */
         };
 
         if current_daa_score < self.block_daa_score + maturity {

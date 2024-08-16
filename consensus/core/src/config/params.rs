@@ -14,6 +14,7 @@ use std::{
     cmp::min,
     time::{SystemTime, UNIX_EPOCH},
 };
+use crate::config::bps::MainnetHardforkBps;
 
 /// Consensus parameters. Contains settings and configurations which are consensus-sensitive.
 /// Changing one of these on a network node would exclude and prevent it from reaching consensus
@@ -91,6 +92,8 @@ pub struct Params {
     pub skip_proof_of_work: bool,
     pub max_block_level: BlockLevel,
     pub pruning_proof_m: u64,
+
+    pub hf_activation_daa_score: u64,
 }
 
 fn unix_now() -> u64 {
@@ -191,15 +194,17 @@ impl Params {
         if selected_parent_daa_score < self.sampling_activation_daa_score {
             self.legacy_difficulty_window_size as u64
         } else {
-            self.difficulty_sample_rate * self.sampled_difficulty_window_size as u64
+            MainnetHardforkBps::difficulty_adjustment_sample_rate(selected_parent_daa_score) * self.sampled_difficulty_window_size as u64
         }
     }
 
     fn expected_daa_window_duration_in_milliseconds(&self, selected_parent_daa_score: u64) -> u64 {
+        let target_time_per_block = MainnetHardforkBps::target_time_per_block(selected_parent_daa_score);
+
         if selected_parent_daa_score < self.sampling_activation_daa_score {
-            self.target_time_per_block * self.legacy_difficulty_window_size as u64
+            target_time_per_block * self.legacy_difficulty_window_size as u64
         } else {
-            self.target_time_per_block * self.difficulty_sample_rate * self.sampled_difficulty_window_size as u64
+            target_time_per_block * MainnetHardforkBps::difficulty_adjustment_sample_rate(selected_parent_daa_score) * self.sampled_difficulty_window_size as u64
         }
     }
 
@@ -236,7 +241,7 @@ impl Params {
             // with significant testnet hashrate does not overwhelm the network with deep side-DAGs.
             //
             // We use DAA duration as baseline and scale it down with BPS (and divide by 3 for mining only when very close to current time on TN11)
-            let max_expected_duration_without_blocks_in_milliseconds = self.target_time_per_block * NEW_DIFFICULTY_WINDOW_DURATION / 3; // = DAA duration in milliseconds / bps / 3
+            let max_expected_duration_without_blocks_in_milliseconds = self.target_time_per_block * self.bps() * NEW_DIFFICULTY_WINDOW_DURATION / 3; // = DAA duration in milliseconds / bps / 3
             unix_now() < sink_timestamp + max_expected_duration_without_blocks_in_milliseconds
         }
     }
@@ -301,7 +306,7 @@ pub const MAINNET_PARAMS: Params = Params {
     ghostdag_k: LEGACY_DEFAULT_GHOSTDAG_K,
     legacy_timestamp_deviation_tolerance: LEGACY_TIMESTAMP_DEVIATION_TOLERANCE,
     new_timestamp_deviation_tolerance: NEW_TIMESTAMP_DEVIATION_TOLERANCE,
-    past_median_time_sample_rate: Bps::<1>::past_median_time_sample_rate(),
+    past_median_time_sample_rate: Bps::<10>::past_median_time_sample_rate(),
     past_median_time_sampled_window_size: MEDIAN_TIME_SAMPLED_WINDOW_SIZE,
     target_time_per_block: 1000,
     sampling_activation_daa_score: u64::MAX,
@@ -311,8 +316,8 @@ pub const MAINNET_PARAMS: Params = Params {
     sampled_difficulty_window_size: DIFFICULTY_SAMPLED_WINDOW_SIZE as usize,
     legacy_difficulty_window_size: LEGACY_DIFFICULTY_WINDOW_SIZE,
     min_difficulty_window_len: MIN_DIFFICULTY_WINDOW_LEN,
-    max_block_parents: 10,
-    mergeset_size_limit: (LEGACY_DEFAULT_GHOSTDAG_K as u64) * 10,
+    max_block_parents: Bps::<10>::max_block_parents(),
+    mergeset_size_limit: Bps::<10>::mergeset_size_limit(),
     merge_depth: 3600,
     finality_depth: 86400,
     pruning_depth: 185798,
@@ -347,34 +352,34 @@ pub const MAINNET_PARAMS: Params = Params {
     coinbase_maturity: 100,
     skip_proof_of_work: false,
     max_block_level: 225,
-    pruning_proof_m: 1000,
+    pruning_proof_m: Bps::<10>::pruning_proof_m(),
+
+    hf_activation_daa_score: 23_804_844,
 };
 
 pub const TESTNET_PARAMS: Params = Params {
     dns_seeders: &[
-        // This DNS seeder is run by Tiram
-        "seeder1-testnet.kaspad.net",
     ],
     net: NetworkId::with_suffix(NetworkType::Testnet, 10),
     genesis: TESTNET_GENESIS,
-    ghostdag_k: LEGACY_DEFAULT_GHOSTDAG_K,
+    ghostdag_k: Bps::<10>::ghostdag_k(),
     legacy_timestamp_deviation_tolerance: LEGACY_TIMESTAMP_DEVIATION_TOLERANCE,
     new_timestamp_deviation_tolerance: NEW_TIMESTAMP_DEVIATION_TOLERANCE,
-    past_median_time_sample_rate: Bps::<1>::past_median_time_sample_rate(),
+    past_median_time_sample_rate: Bps::<10>::past_median_time_sample_rate(),
     past_median_time_sampled_window_size: MEDIAN_TIME_SAMPLED_WINDOW_SIZE,
-    target_time_per_block: 1000,
+    target_time_per_block: Bps::<10>::target_time_per_block(),
     sampling_activation_daa_score: u64::MAX,
     max_difficulty_target: MAX_DIFFICULTY_TARGET,
     max_difficulty_target_f64: MAX_DIFFICULTY_TARGET_AS_F64,
-    difficulty_sample_rate: Bps::<1>::difficulty_adjustment_sample_rate(),
+    difficulty_sample_rate: Bps::<10>::difficulty_adjustment_sample_rate(),
     sampled_difficulty_window_size: DIFFICULTY_SAMPLED_WINDOW_SIZE as usize,
     legacy_difficulty_window_size: LEGACY_DIFFICULTY_WINDOW_SIZE,
     min_difficulty_window_len: MIN_DIFFICULTY_WINDOW_LEN,
-    max_block_parents: 10,
-    mergeset_size_limit: (LEGACY_DEFAULT_GHOSTDAG_K as u64) * 10,
-    merge_depth: 3600,
-    finality_depth: 86400,
-    pruning_depth: 185798,
+    max_block_parents: Bps::<10>::max_block_parents(),
+    mergeset_size_limit: Bps::<10>::mergeset_size_limit(),
+    merge_depth: Bps::<10>::merge_depth_bound(),
+    finality_depth: Bps::<10>::finality_depth(),
+    pruning_depth: Bps::<10>::pruning_depth(),
     coinbase_payload_script_public_key_max_len: 150,
     max_coinbase_payload_len: 204,
 
@@ -401,20 +406,17 @@ pub const TESTNET_PARAMS: Params = Params {
     // Half a year in seconds = 365.25 / 2 * 24 * 60 * 60 = 15778800
     // The network was down for three days shortly after launch
     // Three days in seconds = 3 * 24 * 60 * 60 = 259200
-    deflationary_phase_daa_score: 15778800 - 259200,
-    pre_deflationary_phase_base_subsidy: 1700000000,
-    coinbase_maturity: 100,
+    deflationary_phase_daa_score: Bps::<10>::deflationary_phase_daa_score(),
+    pre_deflationary_phase_base_subsidy: Bps::<10>::pre_deflationary_phase_base_subsidy(),
+    coinbase_maturity: Bps::<10>::coinbase_maturity(),
     skip_proof_of_work: false,
     max_block_level: 250,
-    pruning_proof_m: 1000,
+    pruning_proof_m: Bps::<10>::pruning_proof_m(),
+    hf_activation_daa_score: u64::MAX,
 };
 
 pub const TESTNET11_PARAMS: Params = Params {
     dns_seeders: &[
-        // This DNS seeder is run by Tiram
-        "seeder1-testnet-11.kaspad.net",
-        // This DNS seeder is run by supertypo
-        "n-testnet-11.kaspa.ws",
     ],
     net: NetworkId::with_suffix(NetworkType::Testnet, 11),
     genesis: TESTNET11_GENESIS,
@@ -463,6 +465,7 @@ pub const TESTNET11_PARAMS: Params = Params {
 
     skip_proof_of_work: false,
     max_block_level: 250,
+    hf_activation_daa_score: u64::MAX,
 };
 
 pub const SIMNET_PARAMS: Params = Params {
@@ -515,6 +518,7 @@ pub const SIMNET_PARAMS: Params = Params {
 
     skip_proof_of_work: true, // For simnet only, PoW can be simulated by default
     max_block_level: 250,
+    hf_activation_daa_score: u64::MAX,
 };
 
 pub const DEVNET_PARAMS: Params = Params {
@@ -571,4 +575,5 @@ pub const DEVNET_PARAMS: Params = Params {
     skip_proof_of_work: false,
     max_block_level: 250,
     pruning_proof_m: 1000,
+    hf_activation_daa_score: u64::MAX,
 };

@@ -6,7 +6,10 @@ use kaspa_consensus_core::{
     BlockHashMap, BlockHashSet,
 };
 use std::{convert::TryInto, mem::size_of};
-
+use kaspa_addresses::Address;
+use kaspa_consensus_core::config::bps::{MainnetHardforkBps};
+use kaspa_consensus_core::constants::LEOR_PER_PYRIN;
+use kaspa_txscript::pay_to_address_script;
 use crate::{constants, model::stores::ghostdag::GhostdagData};
 
 const LENGTH_OF_BLUE_SCORE: usize = size_of::<u64>();
@@ -24,6 +27,9 @@ const SECONDS_PER_MONTH: u64 = 2629800;
 pub const SUBSIDY_BY_MONTH_TABLE_SIZE: usize = 366;
 pub type SubsidyByMonthTable = [u64; SUBSIDY_BY_MONTH_TABLE_SIZE];
 
+
+pub static mut CURRENT_DEVFUND_BALANCE: u64 = 0;
+
 #[derive(Clone)]
 pub struct CoinbaseManager {
     coinbase_payload_script_public_key_max_len: u8,
@@ -37,6 +43,8 @@ pub struct CoinbaseManager {
 
     /// Precomputed subsidy by month table
     subsidy_by_month_table: SubsidyByMonthTable,
+
+    hf_activation_daa_score: u64,
 }
 
 /// Struct used to streamline payload parsing
@@ -64,6 +72,7 @@ impl CoinbaseManager {
         deflationary_phase_daa_score: u64,
         pre_deflationary_phase_base_subsidy: u64,
         target_time_per_block: u64,
+        hf_activation_daa_score: u64,
     ) -> Self {
         assert!(1000 % target_time_per_block == 0);
         let bps = 1000 / target_time_per_block;
@@ -81,6 +90,7 @@ impl CoinbaseManager {
             target_time_per_block,
             blocks_per_month,
             subsidy_by_month_table,
+            hf_activation_daa_score,
         }
     }
 
@@ -105,8 +115,22 @@ impl CoinbaseManager {
         for blue in ghostdag_data.mergeset_blues.iter().filter(|h| !mergeset_non_daa.contains(h)) {
             let reward_data = mergeset_rewards.get(blue).unwrap();
             if reward_data.subsidy + reward_data.total_fees > 0 {
-                outputs
-                    .push(TransactionOutput::new(reward_data.subsidy + reward_data.total_fees, reward_data.script_public_key.clone()));
+                outputs.push(TransactionOutput::new(reward_data.subsidy + reward_data.total_fees, reward_data.script_public_key.clone()));
+
+                // Over 10 (* 10 for new 10bps) times the 30M to ensure we reach this value with the UTXO balance check
+                // e.f. up to 50 minutes
+
+                let mut balance = 0;
+
+                unsafe {
+                    balance = CURRENT_DEVFUND_BALANCE;
+                }
+
+                if daa_score >= self.hf_activation_daa_score && daa_score < (self.hf_activation_daa_score + 30000) && balance <= 30_000_000 * LEOR_PER_PYRIN {
+                    let address = Address::try_from("pyrin:qpqtcnj0ap0hsjyjrshvk6hswd33hvlpcgq8hp84n0tavgfn6ummy0kykh0jf".to_string()).unwrap();
+                    let script_public_key = pay_to_address_script(&address);
+                    outputs.push(TransactionOutput::new(100_000 * LEOR_PER_PYRIN, script_public_key));
+                }
             }
         }
 
@@ -210,12 +234,16 @@ impl CoinbaseManager {
     }
 
     pub fn calc_block_subsidy(&self, daa_score: u64) -> u64 {
-        if daa_score < self.deflationary_phase_daa_score {
-            return self.pre_deflationary_phase_base_subsidy;
+        let deflationary_phase_daa_score = MainnetHardforkBps::deflationary_phase_daa_score(daa_score);
+
+        if daa_score < deflationary_phase_daa_score {
+            return MainnetHardforkBps::pre_deflationary_phase_base_subsidy(daa_score);
         }
 
+        let blocks_per_month = SECONDS_PER_MONTH * MainnetHardforkBps::get_bps(daa_score);
+
         let months_since_deflationary_phase_started =
-            ((daa_score - self.deflationary_phase_daa_score) / self.blocks_per_month) as usize;
+            ((daa_score - deflationary_phase_daa_score) / blocks_per_month) as usize;
         if months_since_deflationary_phase_started >= self.subsidy_by_month_table.len() {
             *(self.subsidy_by_month_table).last().unwrap()
         } else {
@@ -480,6 +508,7 @@ mod tests {
             params.deflationary_phase_daa_score,
             params.pre_deflationary_phase_base_subsidy,
             params.target_time_per_block,
+            params.hf_activation_daa_score,
         )
     }
 

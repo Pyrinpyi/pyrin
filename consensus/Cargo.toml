@@ -31,6 +31,7 @@ kaspa-notify.workspace = true
 kaspa-pow.workspace = true
 kaspa-txscript.workspace = true
 kaspa-utils.workspace = true
+kaspa-addresses.workspace = true
 log.workspace = true
 once_cell.workspace = true
 parking_lot.workspace = true
