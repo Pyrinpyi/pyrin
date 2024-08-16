@@ -2,13 +2,15 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use smallvec::SmallVec;
 use std::fmt::{Display, Formatter};
-use pyo3::{IntoPy, Py, PyAny, Python};
 use thiserror::Error;
 use wasm_bindgen::prelude::*;
 use workflow_wasm::{
     convert::{Cast, CastFromJs, TryCastFromJs},
     extensions::object::*,
 };
+
+#[cfg(not(target_family = "wasm"))]
+use pyo3::{IntoPy, Py, PyAny, Python};
 
 mod bech32;
 
@@ -206,6 +208,7 @@ impl std::fmt::Debug for Address {
     }
 }
 
+#[cfg(not(target_family = "wasm"))]
 impl IntoPy<Py<PyAny>> for Address {
     fn into_py(self, py: Python) -> Py<PyAny> {
         self.to_string().into_py(py)

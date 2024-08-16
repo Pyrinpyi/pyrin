@@ -1,6 +1,6 @@
 use crate::{block::Block, header::Header, subnets::SUBNETWORK_ID_COINBASE, tx::Transaction};
 use kaspa_hashes::{Hash, ZERO_HASH};
-use kaspa_muhash::{Hash as Blake2Hash, EMPTY_MUHASH};
+use kaspa_muhash::{Blake2Hash, EMPTY_MUHASH};
 
 /// The constants uniquely representing the genesis block
 #[derive(Clone, Debug)]

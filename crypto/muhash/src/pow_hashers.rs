@@ -1,4 +1,4 @@
-use crate::Hash;
+use crate::Blake2Hash;
 
 #[derive(Clone)]
 pub struct PowHash([u64; 25]);
@@ -19,7 +19,7 @@ impl PowHash {
         9928834659948351306, 5237849264682708699, 12825353012139217522, 6706187291358897596, 196324915476054915,
     ];
     #[inline]
-    pub fn new(pre_pow_hash: Hash, timestamp: u64) -> Self {
+    pub fn new(pre_pow_hash: Blake2Hash, timestamp: u64) -> Self {
         let mut start = Self::INITIAL_STATE;
         for (pre_pow_word, state_word) in pre_pow_hash.iter_le_u64().zip(start.iter_mut()) {
             *state_word ^= pre_pow_word;
@@ -29,10 +29,10 @@ impl PowHash {
     }
 
     #[inline(always)]
-    pub fn finalize_with_nonce(mut self, nonce: u64) -> Hash {
+    pub fn finalize_with_nonce(mut self, nonce: u64) -> Blake2Hash {
         self.0[9] ^= nonce;
         keccak256::f1600(&mut self.0);
-        Hash::from_le_u64(self.0[..4].try_into().unwrap())
+        Blake2Hash::from_le_u64(self.0[..4].try_into().unwrap())
     }
 }
 
@@ -49,13 +49,13 @@ impl KHeavyHash {
         14372891883993151831, 5171152063242093102, 10573107899694386186, 6096431547456407061, 1592359455985097269,
     ];
     #[inline]
-    pub fn hash(in_hash: Hash) -> Hash {
+    pub fn hash(in_hash: Blake2Hash) -> Blake2Hash {
         let mut state = Self::INITIAL_STATE;
         for (pre_pow_word, state_word) in in_hash.iter_le_u64().zip(state.iter_mut()) {
             *state_word ^= pre_pow_word;
         }
         keccak256::f1600(&mut state);
-        Hash::from_le_u64(state[..4].try_into().unwrap())
+        Blake2Hash::from_le_u64(state[..4].try_into().unwrap())
     }
 }
 
@@ -79,7 +79,7 @@ mod keccak256 {
 #[cfg(test)]
 mod tests {
     use super::{KHeavyHash, PowHash};
-    use crate::Hash;
+    use crate::Blake2Hash;
     use sha3::digest::{ExtendableOutput, Update, XofReader};
     use sha3::{CShake256, CShake256Core};
 
@@ -90,7 +90,7 @@ mod tests {
     fn test_pow_hash() {
         let timestamp: u64 = 5435345234;
         let nonce: u64 = 432432432;
-        let pre_pow_hash = Hash([42; 32]);
+        let pre_pow_hash = Blake2Hash([42; 32]);
         let hasher = PowHash::new(pre_pow_hash, timestamp);
         let hash1 = hasher.finalize_with_nonce(nonce);
 
@@ -101,17 +101,17 @@ mod tests {
             .chain(nonce.to_le_bytes());
         let mut hash2 = [0u8; 32];
         hasher.finalize_xof().read(&mut hash2);
-        assert_eq!(Hash(hash2), hash1);
+        assert_eq!(Blake2Hash(hash2), hash1);
     }
 
     #[test]
     fn test_heavy_hash() {
-        let val = Hash([42; 32]);
+        let val = Blake2Hash([42; 32]);
         let hash1 = KHeavyHash::hash(val);
 
         let hasher = CShake256::from_core(CShake256Core::new(HEAVY_HASH_DOMAIN)).chain(val.0);
         let mut hash2 = [0u8; 32];
         hasher.finalize_xof().read(&mut hash2);
-        assert_eq!(Hash(hash2), hash1);
+        assert_eq!(Blake2Hash(hash2), hash1);
     }
 }

@@ -2,7 +2,7 @@ use crate::BlockLevel;
 
 use super::{block::RuleError, tx::TxRuleError};
 use kaspa_hashes::Hash;
-use kaspa_muhash::Hash as Blake2Hash;
+use kaspa_muhash::Blake2Hash;
 use thiserror::Error;
 
 #[derive(Error, Debug, Clone)]

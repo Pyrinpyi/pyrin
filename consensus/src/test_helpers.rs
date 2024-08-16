@@ -6,7 +6,7 @@ use kaspa_consensus_core::{
     utxo::utxo_collection::UtxoCollection,
 };
 use kaspa_hashes::{Hash, HASH_SIZE};
-use kaspa_muhash::{Hash as Blake2Hash};
+use kaspa_muhash::{Blake2Hash};
 use rand::{rngs::SmallRng, seq::SliceRandom, Rng};
 
 pub fn header_from_precomputed_hash(hash: Hash, parents: Vec<Hash>) -> Header {

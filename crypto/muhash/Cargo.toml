@@ -24,10 +24,12 @@ faster-hex.workspace = true
 borsh.workspace = true
 workflow-wasm.workspace = true
 keccak = { workspace = true, optional = true }
-pyo3.workspace = true
 
 # For the exhuative tests, should only be enabled with release
 rayon = { workspace = true, optional = true }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+pyo3.workspace = true
 
 [target.'cfg(any(target_os = "windows", not(target_arch = "x86_64")))'.dependencies]
 keccak.workspace = true

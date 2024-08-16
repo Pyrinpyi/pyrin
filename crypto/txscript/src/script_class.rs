@@ -4,9 +4,11 @@ use std::{
 };
 
 use borsh::{BorshDeserialize, BorshSerialize};
-use pyo3::{IntoPy, Py, PyAny, Python};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+
+#[cfg(not(target_family = "wasm"))]
+use pyo3::{IntoPy, Py, PyAny, Python};
 
 use kaspa_addresses::Version;
 use kaspa_consensus_core::tx::{ScriptPublicKey, ScriptPublicKeyVersion};
@@ -103,6 +105,7 @@ impl ScriptClass {
     }
 }
 
+#[cfg(not(target_family = "wasm"))]
 impl IntoPy<Py<PyAny>> for ScriptClass {
     fn into_py(self, py: Python) -> Py<PyAny> {
         self.to_string().into_py(py)

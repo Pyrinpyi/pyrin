@@ -8,10 +8,10 @@ pub trait HasherBase {
 }
 
 pub trait Hasher: HasherBase + Clone + Default {
-    fn finalize(self) -> crate::Hash;
+    fn finalize(self) -> crate::Blake2Hash;
     fn reset(&mut self);
     #[inline(always)]
-    fn hash<A: AsRef<[u8]>>(data: A) -> crate::Hash {
+    fn hash<A: AsRef<[u8]>>(data: A) -> crate::Blake2Hash {
         let mut hasher = Self::default();
         hasher.update(data);
         hasher.finalize()
@@ -155,10 +155,10 @@ macro_rules! sha256_hasher {
             }
 
             #[inline(always)]
-            pub fn finalize(self) -> crate::Hash {
+            pub fn finalize(self) -> crate::Blake2Hash {
                 let mut out = [0u8; 32];
                 out.copy_from_slice(sha2::Digest::finalize(self.0).as_slice());
-                crate::Hash(out)
+                crate::Blake2Hash(out)
             }
         }
     impl_hasher!{ struct $name }
@@ -186,10 +186,10 @@ macro_rules! blake2b_hasher {
             }
 
             #[inline(always)]
-            pub fn finalize(self) -> crate::Hash {
+            pub fn finalize(self) -> crate::Blake2Hash {
                 let mut out = [0u8; 32];
                 out.copy_from_slice(self.0.finalize().as_bytes());
-                crate::Hash(out)
+                crate::Blake2Hash(out)
             }
         }
     impl_hasher!{ struct $name }
@@ -206,7 +206,7 @@ macro_rules! impl_hasher {
         }
         impl Hasher for $name {
             #[inline(always)]
-            fn finalize(self) -> crate::Hash {
+            fn finalize(self) -> crate::Blake2Hash {
                 // Call the method
                 $name::finalize(self)
             }

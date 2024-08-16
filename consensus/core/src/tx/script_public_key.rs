@@ -14,9 +14,11 @@ use std::{
     collections::HashSet,
     str::{self, FromStr},
 };
-use pyo3::{IntoPy, Py, PyAny, Python};
 use wasm_bindgen::prelude::*;
 use workflow_wasm::prelude::*;
+
+#[cfg(not(target_family = "wasm"))]
+use pyo3::{IntoPy, Py, PyAny, Python};
 
 /// Size of the underlying script vector of a script.
 pub const SCRIPT_VECTOR_SIZE: usize = 36;
@@ -77,6 +79,7 @@ struct ScriptPublicKeyInternal<'a> {
     script: &'a [u8],
 }
 
+#[cfg(not(target_family = "wasm"))]
 impl IntoPy<Py<PyAny>> for ScriptPublicKey {
     fn into_py(self, py: Python) -> Py<PyAny> {
         let mut hex = vec![0u8; self.script.len() * 2 + 4];

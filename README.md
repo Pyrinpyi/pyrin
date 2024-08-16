@@ -10,13 +10,13 @@ Pyrin node built on rust, based on [rusty-kaspa](https://github.com/kaspanet/rus
   1. Install general prerequisites
 
       ```bash
-      sudo apt install curl git build-essential libssl-dev pkg-config 
+      sudo apt install curl git build-essential libssl-dev pkg-config -y
       ```
 
   2. Install Protobuf (required for gRPC)
   
       ```bash
-      sudo apt install protobuf-compiler libprotobuf-dev #Required for gRPC
+      sudo apt install protobuf-compiler libprotobuf-dev -y #Required for gRPC
       ```
   3. Install the clang toolchain (required for RocksDB and WASM secp256k1 builds)
 
@@ -27,7 +27,7 @@ Pyrin node built on rust, based on [rusty-kaspa](https://github.com/kaspanet/rus
       libclang-dev libclang1 liblldb-dev \
       libllvm-ocaml-dev libomp-dev libomp5 \
       lld lldb llvm-dev llvm-runtime \
-      llvm python3-clang
+      llvm python3-clang -y
       ```
   3. Install the [rust toolchain](https://rustup.rs/)
      

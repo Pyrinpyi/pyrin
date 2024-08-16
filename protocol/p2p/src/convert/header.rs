@@ -1,7 +1,7 @@
 use crate::pb as protowire;
 use kaspa_consensus_core::{header::Header, BlueWorkType};
 use kaspa_hashes::Hash;
-use kaspa_muhash::Hash as Blake2Hash;
+use kaspa_muhash::Blake2Hash as Blake2Hash;
 
 use super::error::ConversionError;
 use super::option::TryIntoOptionEx;

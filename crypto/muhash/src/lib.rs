@@ -19,7 +19,7 @@ use std::fmt::Display;
 pub const HASH_SIZE: usize = 32;
 pub const SERIALIZED_MUHASH_SIZE: usize = ELEMENT_BYTE_SIZE;
 // The hash of `NewMuHash().Finalize()`
-pub const EMPTY_MUHASH: Hash = Hash::from_bytes([
+pub const EMPTY_MUHASH: Blake2Hash = Blake2Hash::from_bytes([
     0x54, 0x4e, 0xb3, 0x14, 0x2c, 0x0, 0xf, 0xa, 0xd2, 0xc7, 0x6a, 0xc4, 0x1f, 0x42, 0x22, 0xab, 0xba, 0xba, 0xbe, 0xd8, 0x30, 0xee,
     0xaf, 0xee, 0x4b, 0x6d, 0xc5, 0x6b, 0x52, 0xd5, 0xca, 0xc0,
 ]);
@@ -93,7 +93,7 @@ impl MuHash {
     }
 
     #[inline]
-    pub fn finalize(&mut self) -> Hash {
+    pub fn finalize(&mut self) -> Blake2Hash {
         let serialized = self.serialize();
         MuHashFinalizeHash::hash(serialized)
     }
@@ -199,58 +199,61 @@ use std::{
     hash::{Hash as StdHash, Hasher as StdHasher},
     str::{self, FromStr},
 };
-use pyo3::{IntoPy, Py, PyAny, Python};
 use wasm_bindgen::prelude::*;
 use workflow_wasm::prelude::*;
+
+#[cfg(not(target_family = "wasm"))]
+use pyo3::{IntoPy, Py, PyAny, Python};
 
 // TODO: Check if we use hash more as an array of u64 or of bytes and change the default accordingly
 /// @category General
 #[derive(Eq, Clone, Copy, Default, PartialOrd, Ord, BorshSerialize, BorshDeserialize, CastFromJs)]
 #[wasm_bindgen]
-pub struct Hash([u8; HASH_SIZE]);
+pub struct Blake2Hash([u8; HASH_SIZE]);
 
-serde_impl_ser_fixed_bytes_ref!(Hash, HASH_SIZE);
-serde_impl_deser_fixed_bytes_ref!(Hash, HASH_SIZE);
+serde_impl_ser_fixed_bytes_ref!(Blake2Hash, HASH_SIZE);
+serde_impl_deser_fixed_bytes_ref!(Blake2Hash, HASH_SIZE);
 
-impl From<[u8; HASH_SIZE]> for Hash {
+impl From<[u8; HASH_SIZE]> for Blake2Hash {
     fn from(value: [u8; HASH_SIZE]) -> Self {
-        Hash(value)
+        Blake2Hash(value)
     }
 }
 
-impl TryFrom<&[u8]> for Hash {
+impl TryFrom<&[u8]> for Blake2Hash {
     type Error = TryFromSliceError;
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        Hash::try_from_slice(value)
+        Blake2Hash::try_from_slice(value)
     }
 }
 
-impl IntoPy<Py<PyAny>> for Hash {
+#[cfg(not(target_family = "wasm"))]
+impl IntoPy<Py<PyAny>> for Blake2Hash {
     fn into_py(self, py: Python) -> Py<PyAny> {
         self.to_string().into_py(py)
     }
 }
 
 // TODO: Do we need this ?
-impl From<Blake3Hash> for Hash {
+impl From<Blake3Hash> for Blake2Hash {
     fn from(value: Blake3Hash) -> Self {
-        Hash::from(value.as_bytes())
+        Blake2Hash::from(value.as_bytes())
     }
 }
 
-impl TryFrom<&Blake3Hash> for Hash {
+impl TryFrom<&Blake3Hash> for Blake2Hash {
     type Error = TryFromSliceError;
 
     fn try_from(value: &Blake3Hash) -> Result<Self, Self::Error> {
-        Hash::try_from_slice(value.as_bytes().as_slice())
+        Blake2Hash::try_from_slice(value.as_bytes().as_slice())
     }
 }
 
-impl Hash {
+impl Blake2Hash {
     #[inline(always)]
     pub const fn from_bytes(bytes: [u8; HASH_SIZE]) -> Self {
-        Hash(bytes)
+        Blake2Hash(bytes)
     }
 
     #[inline(always)]
@@ -297,7 +300,7 @@ impl Hash {
 
 // Override the default Hash implementation, to: A. improve perf a bit (siphash works over u64s), B. allow a hasher to just take the first u64.
 // Don't change this without looking at `consensus/core/src/blockhash/BlockHashMap`.
-impl StdHash for Hash {
+impl StdHash for Blake2Hash {
     #[inline(always)]
     fn hash<H: StdHasher>(&self, state: &mut H) {
         self.iter_le_u64().for_each(|x| x.hash(state));
@@ -306,14 +309,14 @@ impl StdHash for Hash {
 
 /// We only override PartialEq because clippy wants us to.
 /// This should always hold: PartialEq(x,y) => Hash(x) == Hash(y)
-impl PartialEq for Hash {
+impl PartialEq for Blake2Hash {
     #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
     }
 }
 
-impl Display for Hash {
+impl Display for Blake2Hash {
     #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut hex = [0u8; HASH_SIZE * 2];
@@ -322,64 +325,64 @@ impl Display for Hash {
     }
 }
 
-impl Debug for Hash {
+impl Debug for Blake2Hash {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(&self, f)
     }
 }
 
-impl FromStr for Hash {
+impl FromStr for Blake2Hash {
     type Err = faster_hex::Error;
 
     #[inline]
     fn from_str(hash_str: &str) -> Result<Self, Self::Err> {
         let mut bytes = [0u8; HASH_SIZE];
         faster_hex::hex_decode(hash_str.as_bytes(), &mut bytes)?;
-        Ok(Hash(bytes))
+        Ok(Blake2Hash(bytes))
     }
 }
 
-impl From<u64> for Hash {
+impl From<u64> for Blake2Hash {
     #[inline(always)]
     fn from(word: u64) -> Self {
         Self::from_u64_word(word)
     }
 }
 
-impl AsRef<[u8; HASH_SIZE]> for Hash {
+impl AsRef<[u8; HASH_SIZE]> for Blake2Hash {
     #[inline(always)]
     fn as_ref(&self) -> &[u8; HASH_SIZE] {
         &self.0
     }
 }
 
-impl AsRef<[u8]> for Hash {
+impl AsRef<[u8]> for Blake2Hash {
     #[inline(always)]
     fn as_ref(&self) -> &[u8] {
         &self.0
     }
 }
 
-impl ToHex for Hash {
+impl ToHex for Blake2Hash {
     fn to_hex(&self) -> String {
         self.to_string()
     }
 }
 
-impl FromHex for Hash {
+impl FromHex for Blake2Hash {
     type Error = faster_hex::Error;
     fn from_hex(hex_str: &str) -> Result<Self, Self::Error> {
         Self::from_str(hex_str)
     }
 }
 
-impl MemSizeEstimator for Hash {}
+impl MemSizeEstimator for Blake2Hash {}
 
 #[wasm_bindgen]
-impl Hash {
+impl Blake2Hash {
     #[wasm_bindgen(constructor)]
     pub fn constructor(hex_str: &str) -> Self {
-        Hash::from_str(hex_str).expect("invalid hash value")
+        Blake2Hash::from_str(hex_str).expect("invalid hash value")
     }
 
     #[wasm_bindgen(js_name = toString)]
@@ -389,12 +392,12 @@ impl Hash {
 }
 
 type TryFromError = workflow_wasm::error::Error;
-impl TryCastFromJs for Hash {
+impl TryCastFromJs for Blake2Hash {
     type Error = TryFromError;
     fn try_cast_from(value: impl AsRef<JsValue>) -> Result<Cast<Self>, Self::Error> {
         Self::resolve(&value, || {
             let bytes = value.as_ref().try_as_vec_u8()?;
-            Ok(Hash(
+            Ok(Blake2Hash(
                 <[u8; HASH_SIZE]>::try_from(bytes)
                     .map_err(|_| TryFromError::WrongSize("Slice must have the length of Hash".into()))?,
             ))
@@ -402,20 +405,20 @@ impl TryCastFromJs for Hash {
     }
 }
 
-pub const ZERO_HASH: Hash = Hash([0; HASH_SIZE]);
+pub const ZERO_HASH: Blake2Hash = Blake2Hash([0; HASH_SIZE]);
 
 
 #[cfg(test)]
 mod tests {
-    use crate::{Hash, OverflowError};
+    use crate::{Blake2Hash, OverflowError};
     use crate::{MuHash, EMPTY_MUHASH, U3072};
     use rand::{Rng, SeedableRng};
     use rand_chacha::ChaCha8Rng;
 
     struct TestVector {
         data: &'static [u8],
-        multiset_hash: Hash,
-        cumulative_hash: Hash,
+        multiset_hash: Blake2Hash,
+        cumulative_hash: Blake2Hash,
     }
 
     const TEST_VECTORS: [TestVector; 3] = [
@@ -427,11 +430,11 @@ mod tests {
                 60, 82, 218, 117, 137, 55, 149, 21, 212, 224, 166, 4, 248, 20, 23, 129, 230, 34, 148, 114, 17, 102, 191, 98, 30, 115,
                 168, 44, 191, 35, 66, 200, 88, 238, 172,
             ],
-            multiset_hash: Hash::from_bytes([
+            multiset_hash: Blake2Hash::from_bytes([
                 44, 55, 150, 32, 253, 244, 236, 10, 194, 83, 203, 228, 186, 130, 194, 187, 220, 15, 237, 172, 127, 224, 228, 82, 149,
                 125, 147, 117, 123, 191, 245, 193,
             ]),
-            cumulative_hash: Hash::from_bytes([
+            cumulative_hash: Blake2Hash::from_bytes([
                 44, 55, 150, 32, 253, 244, 236, 10, 194, 83, 203, 228, 186, 130, 194, 187, 220, 15, 237, 172, 127, 224, 228, 82, 149,
                 125, 147, 117, 123, 191, 245, 193,
             ]),
@@ -444,11 +447,11 @@ mod tests {
                 222, 230, 200, 144, 100, 152, 79, 3, 56, 82, 55, 217, 33, 103, 193, 62, 35, 100, 70, 180, 23, 171, 121, 160, 252, 174,
                 65, 42, 227, 49, 107, 119, 172,
             ],
-            multiset_hash: Hash::from_bytes([
+            multiset_hash: Blake2Hash::from_bytes([
                 102, 139, 178, 146, 239, 21, 44, 84, 219, 15, 87, 20, 191, 69, 255, 141, 167, 177, 212, 28, 12, 80, 38, 173, 101, 91,
                 47, 158, 27, 230, 126, 33,
             ]),
-            cumulative_hash: Hash::from_bytes([
+            cumulative_hash: Blake2Hash::from_bytes([
                 177, 91, 209, 18, 74, 107, 82, 230, 78, 218, 60, 48, 35, 197, 135, 228, 85, 167, 158, 116, 140, 140, 149, 77, 215, 65,
                 29, 13, 189, 151, 56, 99,
             ]),
@@ -461,11 +464,11 @@ mod tests {
                 30, 185, 25, 18, 35, 205, 137, 113, 148, 160, 141, 12, 39, 38, 197, 116, 127, 29, 180, 158, 140, 249, 14, 117, 220,
                 62, 53, 80, 174, 155, 48, 8, 111, 60, 213, 170, 172,
             ],
-            multiset_hash: Hash::from_bytes([
+            multiset_hash: Blake2Hash::from_bytes([
                 244, 11, 32, 189, 196, 62, 242, 240, 26, 23, 59, 118, 124, 185, 198, 184, 219, 86, 2, 235, 83, 95, 203, 152, 39, 56,
                 95, 155, 14, 58, 250, 244,
             ]),
-            cumulative_hash: Hash::from_bytes([
+            cumulative_hash: Blake2Hash::from_bytes([
                 230, 156, 110, 5, 4, 16, 118, 22, 72, 206, 98, 118, 168, 28, 128, 68, 185, 239, 177, 113, 94, 166, 246, 251, 159, 140,
                 247, 168, 193, 232, 3, 150,
             ]),
@@ -482,7 +485,7 @@ mod tests {
     fn test_random_muhash_arithmetic() {
         let mut rng = ChaCha8Rng::seed_from_u64(1);
         for _ in 0..10 {
-            let mut res = Hash::default();
+            let mut res = Blake2Hash::default();
             let mut table = [0u8; 4];
             rng.fill(&mut table[..]);
 

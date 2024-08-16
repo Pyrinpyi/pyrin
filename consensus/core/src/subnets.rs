@@ -2,10 +2,12 @@ use std::fmt::{Debug, Display, Formatter};
 use std::str::{self, FromStr};
 
 use borsh::{BorshDeserialize, BorshSerialize};
-use pyo3::{IntoPy, Py, PyAny, Python};
 use kaspa_utils::hex::{FromHex, ToHex};
 use kaspa_utils::{serde_impl_deser_fixed_bytes_ref, serde_impl_ser_fixed_bytes_ref};
 use thiserror::Error;
+
+#[cfg(not(target_family = "wasm"))]
+use pyo3::{IntoPy, Py, PyAny, Python};
 
 /// The size of the array used to store subnetwork IDs.
 pub const SUBNETWORK_ID_SIZE: usize = 20;
@@ -20,6 +22,7 @@ impl Debug for SubnetworkId {
     }
 }
 
+#[cfg(not(target_family = "wasm"))]
 impl IntoPy<Py<PyAny>> for SubnetworkId {
     fn into_py(self, py: Python) -> Py<PyAny> {
         self.to_string().into_py(py)

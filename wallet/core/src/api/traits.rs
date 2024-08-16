@@ -383,6 +383,34 @@ pub trait WalletApi: Send + Sync + AnySync {
     /// well `transaction_ids` containing a list of submitted transaction ids.
     async fn accounts_send_call(self: Arc<Self>, request: AccountsSendRequest) -> Result<AccountsSendResponse>;
 
+    /// Wrapper around [`Self::accounts_mnemonic_call()`](Self::accounts_mnemonic_call)
+    async fn accounts_mnemonic(self: Arc<Self>, request: AccountsMnemonicRequest) -> Result<String> {
+        Ok(self.accounts_mnemonic_call(request).await?.mnemonic)
+    }
+
+    async fn accounts_mnemonic_call(self: Arc<Self>, request: AccountsMnemonicRequest) -> Result<AccountsMnemonicResponse>;
+
+    /// Wrapper around [`Self::accounts_remove_call()`](Self::accounts_remove_call)
+    async fn accounts_remove(self: Arc<Self>, request: AccountsRemoveRequest) -> Result<AccountsRemoveResponse> {
+        Ok(self.accounts_remove_call(request).await?)
+    }
+
+    async fn accounts_remove_call(self: Arc<Self>, request: AccountsRemoveRequest) -> Result<AccountsRemoveResponse>;
+
+    /// Wrapper around [`Self::accounts_scan_call()`](Self::accounts_scan_call)
+    async fn accounts_scan(self: Arc<Self>, request: AccountsScanRequest) -> Result<AccountsScanResponse> {
+        Ok(self.accounts_scan_call(request).await?)
+    }
+
+    async fn accounts_scan_call(self: Arc<Self>, request: AccountsScanRequest) -> Result<AccountsScanResponse>;
+
+    /// Wrapper around [`Self::accounts_addresses_call()`](Self::accounts_addresses_call)
+    async fn accounts_addresses(self: Arc<Self>, request: AccountsAddressesRequest) -> Result<AccountsAddressesResponse> {
+        Ok(self.accounts_addresses_call(request).await?)
+    }
+
+    async fn accounts_addresses_call(self: Arc<Self>, request: AccountsAddressesRequest) -> Result<AccountsAddressesResponse>;
+
     /// Transfer funds to another account. Returns an [`AccountsTransferResponse`]
     /// struct that contains a [`GeneratorSummary`] as well `transaction_ids`
     /// containing a list of submitted transaction ids. Unlike funds sent to an

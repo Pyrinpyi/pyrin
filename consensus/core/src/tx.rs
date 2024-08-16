@@ -7,10 +7,14 @@ use std::sync::atomic::AtomicU64;
 use std::sync::atomic::Ordering::SeqCst;
 
 use borsh::{BorshDeserialize, BorshSerialize};
-use pyo3::prelude::*;
-use pyo3::pyclass;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
+
+#[cfg(not(target_family = "wasm"))]
+#[allow(unused_imports)]
+use pyo3::prelude::*;
+#[cfg(not(target_family = "wasm"))]
+use pyo3::pyclass;
 
 use kaspa_utils::{serde_bytes, serde_bytes_fixed_ref};
 use kaspa_utils::hex::ToHex;
@@ -36,6 +40,7 @@ pub type TransactionId = kaspa_hashes::Hash;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
 #[wasm_bindgen(inspectable, js_name = TransactionUtxoEntry)]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct UtxoEntry {
     #[pyo3(get)]
@@ -46,8 +51,21 @@ pub struct UtxoEntry {
     #[wasm_bindgen(js_name = blockDaaScore)]
     #[pyo3(get)]
     pub block_daa_score: u64,
-    #[wasm_bindgen(js_name = isCoinbase)]
     #[pyo3(get)]
+    pub is_coinbase: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+#[wasm_bindgen(inspectable, js_name = TransactionUtxoEntry)]
+#[cfg(target_family = "wasm")]
+pub struct UtxoEntry {
+    pub amount: u64,
+    #[wasm_bindgen(js_name = scriptPublicKey, getter_with_clone)]
+    pub script_public_key: ScriptPublicKey,
+    #[wasm_bindgen(js_name = blockDaaScore)]
+    pub block_daa_score: u64,
+    #[wasm_bindgen(js_name = isCoinbase)]
     pub is_coinbase: bool,
 }
 
@@ -64,12 +82,22 @@ pub type TransactionIndexType = u32;
 /// Represents a Kaspa transaction outpoint
 #[derive(Eq, Hash, PartialEq, Debug, Copy, Clone, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct TransactionOutpoint {
     #[serde(with = "serde_bytes_fixed_ref")]
     #[pyo3(get)]
     pub transaction_id: TransactionId,
     #[pyo3(get)]
+    pub index: TransactionIndexType,
+}
+
+#[derive(Eq, Hash, PartialEq, Debug, Copy, Clone, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg(target_family = "wasm")]
+pub struct TransactionOutpoint {
+    #[serde(with = "serde_bytes_fixed_ref")]
+    pub transaction_id: TransactionId,
     pub index: TransactionIndexType,
 }
 

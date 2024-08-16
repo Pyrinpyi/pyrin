@@ -1423,6 +1423,214 @@ try_from!(args: AccountsSendResponse, IAccountsSendResponse, {
 // ---
 
 declare! {
+    IAccountsMnemonicRequest,
+    r#"
+    /**
+     *
+     *
+     * @category Wallet API
+     */
+    export interface IAccountsMnemonicRequest {
+        /**
+         * Hex identifier of the account.
+         */
+        accountId : HexString;
+        /**
+         * Wallet encryption secret.
+         */
+        walletSecret : string;
+    }
+    "#,
+}
+
+
+try_from! ( args: IAccountsMnemonicRequest, AccountsMnemonicRequest, {
+    let account_id = args.get_account_id("accountId")?;
+    let wallet_secret = args.get_secret("walletSecret")?;
+
+    Ok(AccountsMnemonicRequest { account_id, wallet_secret })
+});
+
+declare! {
+    IAccountsMnemonicResponse,
+    r#"
+    /**
+     *
+     *
+     * @category Wallet API
+     */
+    export interface IAccountsMnemonicResponse {
+        mnemonic : string;
+    }
+    "#,
+}
+
+try_from!(args: AccountsMnemonicResponse, IAccountsMnemonicResponse, {
+
+    let response = IAccountsMnemonicResponse::default();
+    response.set("mnemonic", &to_value(&args.mnemonic)?)?;
+    Ok(response)
+});
+
+// ---
+
+declare! {
+    IAccountsRemoveRequest,
+    r#"
+    /**
+     *
+     *
+     * @category Wallet API
+     */
+    export interface IAccountsRemoveRequest {
+        /**
+         * Hex identifier of the account.
+         */
+        accountId : HexString;
+        /**
+         * Wallet encryption secret.
+         */
+        walletSecret : string;
+    }
+    "#,
+}
+
+
+try_from! ( args: IAccountsRemoveRequest, AccountsRemoveRequest, {
+    let account_id = args.get_account_id("accountId")?;
+    let wallet_secret = args.get_secret("walletSecret")?;
+
+    Ok(AccountsRemoveRequest { account_id, wallet_secret })
+});
+
+declare! {
+    IAccountsRemoveResponse,
+    r#"
+    /**
+     *
+     *
+     * @category Wallet API
+     */
+    export interface IAccountsRemoveResponse {
+    }
+    "#,
+}
+
+try_from!(args: AccountsRemoveResponse, IAccountsRemoveResponse, {
+
+    Ok(IAccountsRemoveResponse::default())
+});
+
+// ---
+
+declare! {
+    IAccountsScanRequest,
+    r#"
+    /**
+     *
+     *
+     * @category Wallet API
+     */
+    export interface IAccountsScanRequest {
+        /**
+         * Hex identifier of the account.
+         */
+        accountId : HexString;
+
+        window_size : number;
+        extent : number;
+    }
+    "#,
+}
+
+
+try_from! ( args: IAccountsScanRequest, AccountsScanRequest, {
+    let account_id = args.get_account_id("accountId")?;
+    let window_size = Some(args.get_u32("window_size")? as usize);
+    let extent = Some(args.get_u32("extent")?);
+
+    Ok(AccountsScanRequest { account_id, window_size, extent })
+});
+
+declare! {
+    IAccountsScanResponse,
+    r#"
+    /**
+     *
+     *
+     * @category Wallet API
+     */
+    export interface IAccountsScanResponse {
+    }
+    "#,
+}
+
+try_from!(args: AccountsScanResponse, IAccountsScanResponse, {
+
+    Ok(IAccountsScanResponse::default())
+});
+
+// ---
+
+declare! {
+    IAccountsAddressesRequest,
+    r#"
+    /**
+     *
+     *
+     * @category Wallet API
+     */
+    export interface IAccountsAddressesRequest {
+        /**
+         * Hex identifier of the account.
+         */
+        accountId : HexString;
+
+        /**
+         * Wallet encryption secret.
+         */
+        walletSecret : string;
+
+        start : number;
+        window : number;
+    }
+    "#,
+}
+
+
+try_from! ( args: IAccountsAddressesRequest, AccountsAddressesRequest, {
+    let account_id = args.get_account_id("accountId")?;
+    let wallet_secret = args.get_secret("walletSecret")?;
+    let start = Some(args.get_u32("start")? as usize);
+    let window = Some(args.get_u32("window")? as usize);
+
+    Ok(AccountsAddressesRequest { account_id, wallet_secret, start, window })
+});
+
+declare! {
+    IAccountsAddressesResponse,
+    r#"
+    /**
+     *
+     *
+     * @category Wallet API
+     */
+    export interface IAccountsAddressesResponse {
+        addresses : string[];
+    }
+    "#,
+}
+
+try_from!(args: AccountsAddressesResponse, IAccountsAddressesResponse, {
+
+    let response = IAccountsAddressesResponse::default();
+    response.set("addresses", &to_value(&args.addresses)?)?;
+    Ok(response)
+});
+
+// ---
+
+declare! {
     IAccountsTransferRequest,
     r#"
     /**

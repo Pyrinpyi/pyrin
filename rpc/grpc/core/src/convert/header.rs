@@ -2,7 +2,7 @@ use crate::protowire;
 use crate::{from, try_from};
 use kaspa_rpc_core::{FromRpcHex, RpcError, RpcHash, RpcResult, ToRpcHex};
 use std::str::FromStr;
-use kaspa_muhash::Hash as Blake2Hash;
+use kaspa_muhash::Blake2Hash as Blake2Hash;
 
 // ----------------------------------------------------------------------------
 // rpc_core to protowire
@@ -57,7 +57,7 @@ try_from!(item: &protowire::RpcBlockLevelParents, Vec<RpcHash>, {
 mod tests {
     use crate::protowire;
     use kaspa_rpc_core::{RpcHash, RpcHeader};
-    use kaspa_muhash::Hash as Blake2Hash;
+    use kaspa_muhash::Blake2Hash as Blake2Hash;
 
     fn new_unique() -> RpcHash {
         use std::sync::atomic::{AtomicU64, Ordering};

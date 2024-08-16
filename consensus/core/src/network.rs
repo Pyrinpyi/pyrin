@@ -1,4 +1,3 @@
-use pyo3::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use kaspa_addresses::Prefix;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
@@ -8,6 +7,9 @@ use std::str::FromStr;
 use wasm_bindgen::convert::TryFromJsValue;
 use wasm_bindgen::prelude::*;
 use workflow_wasm::prelude::*;
+
+#[cfg(not(target_family = "wasm"))]
+use pyo3::prelude::*;
 
 #[derive(thiserror::Error, PartialEq, Eq, Debug, Clone)]
 pub enum NetworkTypeError {
@@ -190,6 +192,7 @@ pub struct NetworkId {
     pub suffix: Option<u32>,
 }
 
+#[cfg(not(target_family = "wasm"))]
 impl IntoPy<Py<PyAny>> for NetworkId {
     fn into_py(self, py: Python) -> Py<PyAny> {
         self.to_string().into_py(py)

@@ -1,15 +1,18 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
+#[cfg(not(target_family = "wasm"))]
+use pyo3::pyclass;
+
 use kaspa_hashes::Hash;
-use kaspa_muhash::Hash as Blake2Hash;
+use kaspa_muhash::Blake2Hash;
 
 use crate::{BlueWorkType, hashing};
 
 /// @category Consensus
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct Header {
     /// Cached hash
@@ -38,6 +41,28 @@ pub struct Header {
     #[pyo3(get)]
     pub blue_score: u64,
     #[pyo3(get)]
+    pub pruning_point: Hash,
+}
+
+/// @category Consensus
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg(target_family = "wasm")]
+pub struct Header {
+    /// Cached hash
+    pub hash: Hash,
+    pub version: u16,
+    pub parents_by_level: Vec<Vec<Hash>>,
+    pub hash_merkle_root: Hash,
+    pub accepted_id_merkle_root: Hash,
+    pub utxo_commitment: Blake2Hash,
+    /// Timestamp is in milliseconds
+    pub timestamp: u64,
+    pub bits: u32,
+    pub nonce: u64,
+    pub daa_score: u64,
+    pub blue_work: BlueWorkType,
+    pub blue_score: u64,
     pub pruning_point: Hash,
 }
 

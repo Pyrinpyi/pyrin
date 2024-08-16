@@ -19,7 +19,7 @@ use crate::tx::PaymentOutput;
 use crate::tx::{Fees, Generator, GeneratorSettings, GeneratorSummary, PaymentDestination, PendingTransaction, Signer};
 use crate::utxo::balance::{AtomicBalance, BalanceStrings};
 use crate::utxo::UtxoContextBinding;
-use kaspa_bip32::{ChildNumber, ExtendedPrivateKey, PrivateKey};
+use kaspa_bip32::{ChildNumber, ExtendedPrivateKey, PrivateKey, PrivateKeyBytes};
 use kaspa_consensus_client::UtxoEntryReference;
 use kaspa_wallet_keys::derivation::gen0::WalletDerivationManagerV0;
 use workflow_core::abortable::Abortable;
@@ -346,6 +346,52 @@ pub trait Account: AnySync + Send + Sync + 'static {
         }
 
         Ok((generator.summary(), ids))
+    }
+
+    async fn mnemonic(&self, wallet_secret: Secret) -> Result<String> {
+        let keydata = self.prv_key_data(wallet_secret).await?;
+        let mnemonic = keydata.as_mnemonic(None)?.unwrap();
+
+        Ok(mnemonic.phrase().to_string())
+    }
+
+    async fn addresses(self: Arc<Self>, wallet_secret: Secret, start: usize, window: usize) -> Result<Vec<String>> {
+        let prv_key_data_id = self.prv_key_data_id()?;
+        let prv_key_data_store = self.wallet().store().as_prv_key_data_store()?;
+        let prv_key_data = prv_key_data_store.load_key_data(&wallet_secret, prv_key_data_id).await?;
+        let payload = prv_key_data.unwrap().payload.decrypt(None)?;
+        let xkey = payload.get_xprv(None)?;
+
+        let account = self.clone().as_derivation_capable()?;
+        let derivation = account.derivation();
+        let receive_address_manager = derivation.receive_address_manager();
+        let change_address_manager = derivation.change_address_manager();
+
+        let change_address_index = change_address_manager.index();
+        let change_address_keypair =
+            derivation.get_range_with_keys(true, change_address_index..change_address_index + 1, false, &xkey).await?;
+
+        let mut index: usize = start;
+
+        let first = index as u32;
+        let last = (index + window) as u32;
+        index = last as usize;
+
+        let (keys, addresses): (Vec<PrivateKeyBytes>, Vec<Address>) = {
+            let mut addresses = receive_address_manager.get_range_with_args(first..last, false)?;
+            let change_addresses = change_address_manager.get_range_with_args(first..last, false)?;
+            addresses.extend(change_addresses);
+            (vec![], addresses)
+        };
+
+        Ok(addresses.iter().map(|address| address.to_string()).collect::<Vec<String>>())
+    }
+
+    async fn delete_account(self: Arc<Self>, wallet_secret: String, id: String) -> Result<()> {
+        let bytes = Vec::from_hex(id.as_str()).unwrap();
+        let account_id = AccountId(kaspa_hashes::Hash::from_slice(&bytes[..]));
+        self.wallet().remove_bip32_account(Secret::from(wallet_secret), account_id).await?;
+        Ok(())
     }
 
     /// Execute a transfer to another wallet account.

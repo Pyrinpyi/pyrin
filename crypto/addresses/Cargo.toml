@@ -18,6 +18,8 @@ thiserror.workspace = true
 wasm-bindgen.workspace = true
 workflow-wasm.workspace = true
 workflow-log.workspace = true
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
 pyo3.workspace = true
 
 [dev-dependencies]

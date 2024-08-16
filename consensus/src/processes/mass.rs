@@ -139,7 +139,7 @@ impl MassCalculator {
 mod tests {
     use super::*;
     use kaspa_consensus_core::{
-        constants::{SOMPI_PER_KASPA, STORAGE_MASS_PARAMETER},
+        constants::{LEOR_PER_PYRIN, STORAGE_MASS_PARAMETER},
         subnets::SubnetworkId,
         tx::*,
     };
@@ -166,7 +166,7 @@ mod tests {
         assert_eq!(storage_mass, storage_mass_parameter / 50 + storage_mass_parameter / 550 - 3 * (storage_mass_parameter / 200));
 
         // Create a tx with more outs than ins
-        let base_value = 10_000 * SOMPI_PER_KASPA;
+        let base_value = 10_000 * LEOR_PER_PYRIN;
         let mut tx = generate_tx_from_amounts(&[base_value, base_value, base_value * 2], &[base_value; 4]);
         let storage_mass_parameter = STORAGE_MASS_PARAMETER;
         let storage_mass =
@@ -174,7 +174,7 @@ mod tests {
         assert_eq!(storage_mass, 4); // Inputs are above C so they don't contribute negative mass, 4 outputs exactly equal C each charge 1
 
         let mut tx2 = tx.clone();
-        tx2.tx.outputs[0].value = 10 * SOMPI_PER_KASPA;
+        tx2.tx.outputs[0].value = 10 * LEOR_PER_PYRIN;
         let storage_mass =
             MassCalculator::new(0, 0, 0, storage_mass_parameter).calc_tx_storage_mass(&tx2.as_verifiable(), test_version).unwrap();
         assert_eq!(storage_mass, 1003);

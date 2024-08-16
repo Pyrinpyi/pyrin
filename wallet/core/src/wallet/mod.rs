@@ -1063,6 +1063,18 @@ impl Wallet {
         Ok(Box::pin(stream))
     }
 
+    pub async fn remove_bip32_account(
+        self: &Arc<Wallet>,
+        wallet_secret: Secret,
+        id: AccountId,
+    ) -> Result<()> {
+        let account_storage = self.inner.store.clone().as_account_store()?;
+        account_storage.remove(&[&id]).await?;
+        self.inner.store.clone().commit(&wallet_secret).await?;
+
+        Ok(())
+    }
+
     // TODO - remove these comments (these functions are a part of
     // a major refactoring and are temporarily kept here for reference)
 

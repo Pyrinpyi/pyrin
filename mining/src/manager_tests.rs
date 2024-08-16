@@ -18,7 +18,7 @@ mod tests {
         api::ConsensusApi,
         block::TemplateBuildMode,
         coinbase::MinerData,
-        constants::{MAX_TX_IN_SEQUENCE_NUM, SOMPI_PER_KASPA, TX_VERSION},
+        constants::{MAX_TX_IN_SEQUENCE_NUM, LEOR_PER_PYRIN, TX_VERSION},
         errors::tx::{TxResult, TxRuleError},
         mass::transaction_estimated_serialized_size,
         subnets::SUBNETWORK_ID_NATIVE,
@@ -669,7 +669,7 @@ mod tests {
         let mining_manager = MiningManager::new(TARGET_TIME_PER_BLOCK, false, MAX_BLOCK_MASS, None, counters);
 
         // Create two valid transactions that double-spend each other (child_tx_1, child_tx_2)
-        let (parent_tx, child_tx_1) = create_parent_and_children_transactions(&consensus, vec![3000 * SOMPI_PER_KASPA]);
+        let (parent_tx, child_tx_1) = create_parent_and_children_transactions(&consensus, vec![3000 * LEOR_PER_PYRIN]);
         consensus.add_transaction(parent_tx, 0);
 
         let mut child_tx_2 = child_tx_1.clone();
@@ -920,8 +920,8 @@ mod tests {
         let signature_script = pay_to_script_hash_signature_script(redeem_script, vec![]).expect("the redeem script is canonical");
 
         let input = TransactionInput::new(previous_outpoint, signature_script, MAX_TX_IN_SEQUENCE_NUM, 1);
-        let entry = UtxoEntry::new(SOMPI_PER_KASPA, script_public_key.clone(), block_daa_score, true);
-        let output = TransactionOutput::new(SOMPI_PER_KASPA - DEFAULT_MINIMUM_RELAY_TRANSACTION_FEE, script_public_key);
+        let entry = UtxoEntry::new(LEOR_PER_PYRIN, script_public_key.clone(), block_daa_score, true);
+        let output = TransactionOutput::new(LEOR_PER_PYRIN - DEFAULT_MINIMUM_RELAY_TRANSACTION_FEE, script_public_key);
         let transaction = Transaction::new(TX_VERSION, vec![input], vec![output], 0, SUBNETWORK_ID_NATIVE, 0, vec![]);
 
         let mut mutable_tx = MutableTransaction::from_tx(transaction);
@@ -940,7 +940,7 @@ mod tests {
         // Make the funding amounts always different so that funding txs have different ids
         (0..count)
             .map(|i| {
-                create_parent_and_children_transactions(consensus, vec![500 * SOMPI_PER_KASPA, 3_000 * SOMPI_PER_KASPA + i as u64])
+                create_parent_and_children_transactions(consensus, vec![500 * LEOR_PER_PYRIN, 3_000 * LEOR_PER_PYRIN + i as u64])
             })
             .unzip()
     }
@@ -958,7 +958,7 @@ mod tests {
     }
 
     fn create_child_and_parent_txs_and_add_parent_to_consensus(consensus: &Arc<ConsensusMock>) -> Transaction {
-        let parent_tx = create_transaction_without_input(vec![500 * SOMPI_PER_KASPA]);
+        let parent_tx = create_transaction_without_input(vec![500 * LEOR_PER_PYRIN]);
         let child_tx = create_transaction(&parent_tx, 1000);
         consensus.add_transaction(parent_tx, 1);
         child_tx

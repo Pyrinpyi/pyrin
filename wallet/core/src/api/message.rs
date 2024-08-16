@@ -462,6 +462,59 @@ pub struct AccountsSendResponse {
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct AccountsMnemonicRequest {
+    pub account_id: AccountId,
+    pub wallet_secret: Secret,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountsMnemonicResponse {
+    pub mnemonic: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountsRemoveRequest {
+    pub account_id: AccountId,
+    pub wallet_secret: Secret,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountsRemoveResponse {
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountsScanRequest {
+    pub account_id: AccountId,
+    pub window_size: Option<usize>,
+    pub extent: Option<u32>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountsScanResponse {
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountsAddressesRequest {
+    pub account_id: AccountId,
+    pub wallet_secret: Secret,
+    pub start: Option<usize>,
+    pub window: Option<usize>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountsAddressesResponse {
+    pub addresses: Vec<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AccountsTransferRequest {
     pub source_account_id: AccountId,
     pub destination_account_id: AccountId,

@@ -25,6 +25,8 @@ serde.workspace = true
 sha2.workspace = true
 wasm-bindgen.workspace = true
 workflow-wasm.workspace = true
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
 pyo3.workspace = true
 
 [target.'cfg(any(target_os = "windows", not(target_arch = "x86_64")))'.dependencies]

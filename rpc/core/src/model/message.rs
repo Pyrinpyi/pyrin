@@ -1,5 +1,4 @@
 use crate::model::*;
-use pyo3::prelude::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use kaspa_consensus_core::api::stats::BlockCount;
 use kaspa_core::debug;
@@ -9,6 +8,9 @@ use std::{
     fmt::{Display, Formatter},
     sync::Arc,
 };
+
+#[cfg(not(target_family = "wasm"))]
+use pyo3::prelude::*;
 
 pub type RpcExtraData = Vec<u8>;
 
@@ -31,12 +33,13 @@ impl SubmitBlockRequest {
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
-#[pyclass]
+#[cfg_attr(not(target_family = "wasm"), pyclass)]
 pub enum SubmitBlockRejectReason {
     BlockInvalid = 1,
     IsInIBD = 2,
     RouteIsFull = 3,
 }
+
 impl SubmitBlockRejectReason {
     fn as_str(&self) -> &'static str {
         // see app\appmessage\rpc_submit_block.go, line 35
@@ -92,6 +95,7 @@ impl GetBlockTemplateRequest {
 
 #[derive(Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct GetBlockTemplateResponse {
     #[pyo3(get)]
@@ -103,6 +107,39 @@ pub struct GetBlockTemplateResponse {
     /// chance the block will never be accepted, thus the solving effort would have been wasted.
     #[pyo3(get)]
     pub is_synced: bool,
+}
+
+#[cfg(target_family = "wasm")]
+#[derive(Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetBlockTemplateResponse {
+    pub block: RpcBlock,
+
+    /// Whether kaspad thinks that it's synced.
+    /// Callers are discouraged (but not forbidden) from solving blocks when kaspad is not synced.
+    /// That is because when kaspad isn't in sync with the rest of the network there's a high
+    /// chance the block will never be accepted, thus the solving effort would have been wasted.
+    pub is_synced: bool,
+}
+
+/// GetOutpointRequest requests information about a specific outpoint
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetOutpointRequest {
+    /// The hash of the requested outpoint
+    pub hash: RpcHash,
+}
+
+impl GetOutpointRequest {
+    pub fn new(hash: RpcHash) -> Self {
+        Self { hash }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetOutpointResponse {
+    pub entry: RpcUtxoEntry,
 }
 
 /// GetBlockRequest requests information about a specific block
@@ -134,6 +171,7 @@ pub struct GetInfoRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct GetInfoResponse {
     #[pyo3(get)]
@@ -149,6 +187,19 @@ pub struct GetInfoResponse {
     #[pyo3(get)]
     pub has_notify_command: bool,
     #[pyo3(get)]
+    pub has_message_id: bool,
+}
+
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetInfoResponse {
+    pub p2p_id: String,
+    pub mempool_size: u64,
+    pub server_version: String,
+    pub is_utxo_indexed: bool,
+    pub is_synced: bool,
+    pub has_notify_command: bool,
     pub has_message_id: bool,
 }
 
@@ -174,11 +225,20 @@ pub struct GetPeerAddressesRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct GetPeerAddressesResponse {
     #[pyo3(get)]
     pub known_addresses: Vec<RpcPeerAddress>,
     #[pyo3(get)]
+    pub banned_addresses: Vec<RpcIpAddress>,
+}
+
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetPeerAddressesResponse {
+    pub known_addresses: Vec<RpcPeerAddress>,
     pub banned_addresses: Vec<RpcIpAddress>,
 }
 
@@ -194,9 +254,17 @@ pub struct GetSinkRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct GetSinkResponse {
     #[pyo3(get)]
+    pub sink: RpcHash,
+}
+
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetSinkResponse {
     pub sink: RpcHash,
 }
 
@@ -265,9 +333,17 @@ pub struct GetConnectedPeerInfoRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct GetConnectedPeerInfoResponse {
     #[pyo3(get)]
+    pub peer_info: Vec<RpcPeerInfo>,
+}
+
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetConnectedPeerInfoResponse {
     pub peer_info: Vec<RpcPeerInfo>,
 }
 
@@ -333,9 +409,17 @@ impl GetSubnetworkRequest {
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct GetSubnetworkResponse {
     #[pyo3(get)]
+    pub gas_limit: u64,
+}
+
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetSubnetworkResponse {
     pub gas_limit: u64,
 }
 
@@ -360,6 +444,7 @@ impl GetVirtualChainFromBlockRequest {
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct GetVirtualChainFromBlockResponse {
     #[pyo3(get)]
@@ -367,6 +452,15 @@ pub struct GetVirtualChainFromBlockResponse {
     #[pyo3(get)]
     pub added_chain_block_hashes: Vec<RpcHash>,
     #[pyo3(get)]
+    pub accepted_transaction_ids: Vec<RpcAcceptedTransactionIds>,
+}
+
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetVirtualChainFromBlockResponse {
+    pub removed_chain_block_hashes: Vec<RpcHash>,
+    pub added_chain_block_hashes: Vec<RpcHash>,
     pub accepted_transaction_ids: Vec<RpcAcceptedTransactionIds>,
 }
 
@@ -396,11 +490,20 @@ impl GetBlocksRequest {
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct GetBlocksResponse {
     #[pyo3(get)]
     pub block_hashes: Vec<RpcHash>,
     #[pyo3(get)]
+    pub blocks: Vec<RpcBlock>,
+}
+
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetBlocksResponse {
+    pub block_hashes: Vec<RpcHash>,
     pub blocks: Vec<RpcBlock>,
 }
 
@@ -422,6 +525,7 @@ pub struct GetBlockDagInfoRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct GetBlockDagInfoResponse {
     #[pyo3(get)]
@@ -443,6 +547,22 @@ pub struct GetBlockDagInfoResponse {
     #[pyo3(get)]
     pub virtual_daa_score: u64,
     #[pyo3(get)]
+    pub sink: RpcHash,
+}
+
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetBlockDagInfoResponse {
+    pub network: RpcNetworkId,
+    pub block_count: u64,
+    pub header_count: u64,
+    pub tip_hashes: Vec<RpcHash>,
+    pub difficulty: f64,
+    pub past_median_time: u64, // NOTE: i64 in gRPC protowire
+    pub virtual_parent_hashes: Vec<RpcHash>,
+    pub pruning_point_hash: RpcHash,
+    pub virtual_daa_score: u64,
     pub sink: RpcHash,
 }
 
@@ -702,11 +822,20 @@ pub struct GetCoinSupplyRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct GetCoinSupplyResponse {
     #[pyo3(get)]
     pub max_sompi: u64,
     #[pyo3(get)]
+    pub circulating_sompi: u64,
+}
+
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetCoinSupplyResponse {
+    pub max_sompi: u64,
     pub circulating_sompi: u64,
 }
 
@@ -737,6 +866,7 @@ pub struct GetMetricsRequest {
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct ProcessMetrics {
     #[pyo3(get)]
@@ -759,8 +889,24 @@ pub struct ProcessMetrics {
     pub disk_io_write_per_sec: f32,
 }
 
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProcessMetrics {
+    pub resident_set_size: u64,
+    pub virtual_memory_size: u64,
+    pub core_num: u32,
+    pub cpu_usage: f32,
+    pub fd_num: u32,
+    pub disk_io_read_bytes: u64,
+    pub disk_io_write_bytes: u64,
+    pub disk_io_read_per_sec: f32,
+    pub disk_io_write_per_sec: f32,
+}
+
 #[derive(Default, Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct ConnectionMetrics {
     #[pyo3(get)]
@@ -780,8 +926,23 @@ pub struct ConnectionMetrics {
     pub active_peers: u32,
 }
 
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ConnectionMetrics {
+    pub borsh_live_connections: u32,
+    pub borsh_connection_attempts: u64,
+    pub borsh_handshake_failures: u64,
+    pub json_live_connections: u32,
+    pub json_connection_attempts: u64,
+    pub json_handshake_failures: u64,
+
+    pub active_peers: u32,
+}
+
 #[derive(Default, Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct BandwidthMetrics {
     #[pyo3(get)]
@@ -802,8 +963,23 @@ pub struct BandwidthMetrics {
     pub grpc_bytes_rx: u64,
 }
 
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BandwidthMetrics {
+    pub borsh_bytes_tx: u64,
+    pub borsh_bytes_rx: u64,
+    pub json_bytes_tx: u64,
+    pub json_bytes_rx: u64,
+    pub p2p_bytes_tx: u64,
+    pub p2p_bytes_rx: u64,
+    pub grpc_bytes_tx: u64,
+    pub grpc_bytes_rx: u64,
+}
+
 #[derive(Default, Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct ConsensusMetrics {
     #[pyo3(get)]
@@ -840,8 +1016,32 @@ pub struct ConsensusMetrics {
     pub network_virtual_daa_score: u64,
 }
 
+#[cfg(target_family = "wasm")]
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ConsensusMetrics {
+    pub node_blocks_submitted_count: u64,
+    pub node_headers_processed_count: u64,
+    pub node_dependencies_processed_count: u64,
+    pub node_bodies_processed_count: u64,
+    pub node_transactions_processed_count: u64,
+    pub node_chain_blocks_processed_count: u64,
+    pub node_mass_processed_count: u64,
+
+    pub node_database_blocks_count: u64,
+    pub node_database_headers_count: u64,
+
+    pub network_mempool_size: u64,
+    pub network_tip_hashes_count: u32,
+    pub network_difficulty: f64,
+    pub network_past_median_time: u64,
+    pub network_virtual_parent_hashes_count: u32,
+    pub network_virtual_daa_score: u64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct GetMetricsResponse {
     #[pyo3(get)]
@@ -853,6 +1053,17 @@ pub struct GetMetricsResponse {
     #[pyo3(get)]
     pub bandwidth_metrics: Option<BandwidthMetrics>,
     #[pyo3(get)]
+    pub consensus_metrics: Option<ConsensusMetrics>,
+}
+
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetMetricsResponse {
+    pub server_time: u64,
+    pub process_metrics: Option<ProcessMetrics>,
+    pub connection_metrics: Option<ConnectionMetrics>,
+    pub bandwidth_metrics: Option<BandwidthMetrics>,
     pub consensus_metrics: Option<ConsensusMetrics>,
 }
 
@@ -874,6 +1085,7 @@ pub struct GetServerInfoRequest {}
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct GetServerInfoResponse {
     #[pyo3(get)]
@@ -889,9 +1101,29 @@ pub struct GetServerInfoResponse {
     pub virtual_daa_score: u64,
 }
 
+#[cfg(target_family = "wasm")]
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetServerInfoResponse {
+    pub rpc_api_version: [u16; 4],
+    pub server_version: String,
+    pub network_id: RpcNetworkId,
+    pub has_utxo_index: bool,
+    pub is_synced: bool,
+    pub virtual_daa_score: u64,
+}
+
+#[cfg(not(target_family = "wasm"))]
 #[pymethods]
 impl GetServerInfoResponse {
     #[getter]
+    pub fn network_id(&self) -> String {
+        self.network_id.to_string()
+    }
+}
+
+#[cfg(target_family = "wasm")]
+impl GetServerInfoResponse {
     pub fn network_id(&self) -> String {
         self.network_id.to_string()
     }
@@ -1000,16 +1232,6 @@ pub struct VirtualChainChangedNotification {
     pub removed_chain_block_hashes: Arc<Vec<RpcHash>>,
     pub added_chain_block_hashes: Arc<Vec<RpcHash>>,
     pub accepted_transaction_ids: Arc<Vec<RpcAcceptedTransactionIds>>,
-}
-
-#[pyclass]
-pub struct PyVirtualChainChangedNotification {
-    #[pyo3(get)]
-    pub removed_chain_block_hashes: Vec<RpcHash>,
-    #[pyo3(get)]
-    pub added_chain_block_hashes: Vec<RpcHash>,
-    #[pyo3(get)]
-    pub accepted_transaction_ids: Vec<RpcAcceptedTransactionIds>,
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

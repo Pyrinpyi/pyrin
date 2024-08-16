@@ -8,10 +8,12 @@ use std::{
 // #![allow(dead_code)]
 use borsh::{BorshDeserialize, BorshSerialize};
 use ipnet::IpNet;
-use pyo3::{IntoPy, Py, PyAny, Python};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use wasm_bindgen::prelude::*;
+
+#[cfg(not(target_family = "wasm"))]
+use pyo3::{IntoPy, Py, PyAny, Python};
 
 // A network address serialization of [`ContextualNetAddress`].
 #[wasm_bindgen(typescript_custom_section)]
@@ -132,6 +134,7 @@ impl IpAddress {
     }
 }
 
+#[cfg(not(target_family = "wasm"))]
 impl IntoPy<Py<PyAny>> for IpAddress {
     fn into_py(self, py: Python) -> Py<PyAny> {
         self.to_string().into_py(py)
@@ -233,6 +236,7 @@ pub struct NetAddress {
     pub port: u16,
 }
 
+#[cfg(not(target_family = "wasm"))]
 impl IntoPy<Py<PyAny>> for NetAddress {
     fn into_py(self, py: Python) -> Py<PyAny> {
         self.to_string().into_py(py)
@@ -357,6 +361,7 @@ impl PeerId {
     }
 }
 
+#[cfg(not(target_family = "wasm"))]
 impl IntoPy<Py<PyAny>> for PeerId {
     fn into_py(self, py: Python) -> Py<PyAny> {
         self.to_string().into_py(py)

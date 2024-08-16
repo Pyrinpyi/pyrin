@@ -354,6 +354,46 @@ impl WalletApi for super::Wallet {
         Ok(AccountsSendResponse { generator_summary, transaction_ids })
     }
 
+    async fn accounts_mnemonic_call(self: Arc<Self>, request: AccountsMnemonicRequest) -> Result<AccountsMnemonicResponse> {
+        let account_id = request.account_id.clone();
+        let account = self.get_account_by_id(&account_id).await?.ok_or(Error::AccountNotFound(account_id))?;
+
+        let mnemonic = account.mnemonic(request.wallet_secret.clone()).await?;
+
+        Ok(AccountsMnemonicResponse { mnemonic })
+    }
+
+    async fn accounts_remove_call(self: Arc<Self>, request: AccountsRemoveRequest) -> Result<AccountsRemoveResponse> {
+        let account_id = request.account_id.clone();
+        let account = self.get_account_by_id(&account_id).await?.ok_or(Error::AccountNotFound(account_id))?;
+
+        account.wallet().remove_bip32_account(request.wallet_secret.clone(), request.account_id.clone()).await?;
+
+        Ok(AccountsRemoveResponse {})
+    }
+
+    async fn accounts_scan_call(self: Arc<Self>, request: AccountsScanRequest) -> Result<AccountsScanResponse> {
+        let account_id = request.account_id.clone();
+        let window_size = request.window_size.clone();
+        let extent = request.extent.clone();
+        let account = self.get_account_by_id(&account_id).await?.ok_or(Error::AccountNotFound(account_id))?;
+
+        account.scan(window_size, extent).await?;
+
+        Ok(AccountsScanResponse { })
+    }
+
+    async fn accounts_addresses_call(self: Arc<Self>, request: AccountsAddressesRequest) -> Result<AccountsAddressesResponse> {
+        let account_id = request.account_id.clone();
+        let start = request.start.clone();
+        let window = request.window.clone();
+        let account = self.get_account_by_id(&account_id).await?.ok_or(Error::AccountNotFound(account_id))?;
+
+        let addresses = account.addresses(request.wallet_secret.clone(), start.unwrap_or_default(), window.unwrap_or_default()).await?;
+
+        Ok(AccountsAddressesResponse { addresses })
+    }
+
     async fn accounts_transfer_call(self: Arc<Self>, request: AccountsTransferRequest) -> Result<AccountsTransferResponse> {
         let AccountsTransferRequest {
             source_account_id,

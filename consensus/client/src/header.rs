@@ -3,7 +3,7 @@ use js_sys::{Array, Object};
 use kaspa_consensus_core::hashing;
 use kaspa_consensus_core::header as native;
 use kaspa_hashes::Hash;
-use kaspa_muhash::Hash as Blake2Hash;
+use kaspa_muhash::Blake2Hash;
 use kaspa_utils::hex::ToHex;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen::*;

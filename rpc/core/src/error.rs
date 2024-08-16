@@ -1,9 +1,10 @@
 use std::{net::AddrParseError, num::TryFromIntError};
 
-use pyo3::exceptions::PyException;
-use pyo3::PyErr;
 use thiserror::Error;
 use workflow_core::channel::ChannelError;
+
+#[cfg(not(target_family = "wasm"))]
+use pyo3::{exceptions::PyException, PyErr};
 
 use kaspa_consensus_core::{subnets::SubnetworkConversionError, tx::TransactionId};
 use kaspa_utils::networking::IpAddress;
@@ -133,6 +134,7 @@ pub enum RpcError {
     ConsensusClient(#[from] kaspa_consensus_client::error::Error),
 }
 
+#[cfg(not(target_family = "wasm"))]
 impl From<RpcError> for PyErr {
     fn from(err: RpcError) -> PyErr {
         PyException::new_err(err.to_string())

@@ -50,6 +50,8 @@ uuid.workspace = true
 wasm-bindgen.workspace = true
 workflow-core.workspace = true
 workflow-wasm.workspace = true
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
 pyo3.workspace = true
 
 [dev-dependencies]

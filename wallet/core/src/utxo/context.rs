@@ -502,9 +502,9 @@ impl UtxoContext {
         // this condition does not occur. This is a temporary
         // log for a fixed bug, but we want to keep the check
         // just in case.
-        if mature + consumed < outgoing {
-            log_error!("Error: outgoing transaction value exceeds available balance");
-        }
+        // if mature + consumed < outgoing {
+        //     log_error!("Error: outgoing transaction value exceeds available balance");
+        // }
 
         let mature = (mature + consumed).saturating_sub(outgoing);
 

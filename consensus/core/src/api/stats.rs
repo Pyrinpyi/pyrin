@@ -1,14 +1,25 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use pyo3::pyclass;
 use serde::{Deserialize, Serialize};
+
+#[cfg(not(target_family = "wasm"))]
+use pyo3::{prelude::*, pyclass};
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize, Default)]
 #[serde(rename_all = "camelCase")]
+#[cfg(not(target_family = "wasm"))]
 #[pyclass]
 pub struct BlockCount {
     #[pyo3(get)]
     pub header_count: u64,
     #[pyo3(get)]
+    pub block_count: u64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize, Default)]
+#[serde(rename_all = "camelCase")]
+#[cfg(target_family = "wasm")]
+pub struct BlockCount {
+    pub header_count: u64,
     pub block_count: u64,
 }
 
