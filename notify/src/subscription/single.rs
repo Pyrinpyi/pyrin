@@ -327,7 +327,7 @@ impl UtxosChangedSubscription {
         let subscription = Self { data, listener_id };
         trace!(
             "UtxosChangedSubscription: {} in total (new {})",
-            UTXOS_CHANGED_SUBSCRIPTIONS.fetch_add(1, Ordering::SeqCst) + 1,
+            UTXOS_CHANGED_SUBSCRIPTIONS.fetch_add(1, Ordering::SeqCst).saturating_add(1),
             subscription
         );
         subscription
@@ -368,7 +368,7 @@ impl Clone for UtxosChangedSubscription {
         let subscription = Self { data: RwLock::new(self.data().clone()), listener_id: self.listener_id };
         trace!(
             "UtxosChangedSubscription: {} in total (clone {})",
-            UTXOS_CHANGED_SUBSCRIPTIONS.fetch_add(1, Ordering::SeqCst) + 1,
+            UTXOS_CHANGED_SUBSCRIPTIONS.fetch_add(1, Ordering::SeqCst).saturating_add(1),
             subscription
         );
         subscription
@@ -385,7 +385,7 @@ impl Drop for UtxosChangedSubscription {
     fn drop(&mut self) {
         trace!(
             "UtxosChangedSubscription: {} in total (drop {})",
-            UTXOS_CHANGED_SUBSCRIPTIONS.fetch_sub(1, Ordering::SeqCst) - 1,
+            UTXOS_CHANGED_SUBSCRIPTIONS.fetch_sub(1, Ordering::SeqCst).saturating_sub(1),
             self
         );
     }

@@ -1516,7 +1516,7 @@ declare! {
     "#,
 }
 
-try_from!(args: AccountsRemoveResponse, IAccountsRemoveResponse, {
+try_from!(_args: AccountsRemoveResponse, IAccountsRemoveResponse, {
 
     Ok(IAccountsRemoveResponse::default())
 });
@@ -1565,7 +1565,7 @@ declare! {
     "#,
 }
 
-try_from!(args: AccountsScanResponse, IAccountsScanResponse, {
+try_from!(_args: AccountsScanResponse, IAccountsScanResponse, {
 
     Ok(IAccountsScanResponse::default())
 });

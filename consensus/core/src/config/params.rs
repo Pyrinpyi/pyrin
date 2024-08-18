@@ -94,6 +94,7 @@ pub struct Params {
     pub pruning_proof_m: u64,
 
     pub hf_activation_daa_score: u64,
+    pub hf_devfund_address: &'static str,
 }
 
 fn unix_now() -> u64 {
@@ -355,6 +356,7 @@ pub const MAINNET_PARAMS: Params = Params {
     pruning_proof_m: Bps::<10>::pruning_proof_m(),
 
     hf_activation_daa_score: 23_804_844,
+    hf_devfund_address: "pyrin:qpqtcnj0ap0hsjyjrshvk6hswd33hvlpcgq8hp84n0tavgfn6ummy0kykh0jf",
 };
 
 pub const TESTNET_PARAMS: Params = Params {
@@ -413,6 +415,7 @@ pub const TESTNET_PARAMS: Params = Params {
     max_block_level: 250,
     pruning_proof_m: Bps::<10>::pruning_proof_m(),
     hf_activation_daa_score: u64::MAX,
+    hf_devfund_address: "pyrin:qpqtcnj0ap0hsjyjrshvk6hswd33hvlpcgq8hp84n0tavgfn6ummy0kykh0jf",
 };
 
 pub const TESTNET11_PARAMS: Params = Params {
@@ -466,6 +469,7 @@ pub const TESTNET11_PARAMS: Params = Params {
     skip_proof_of_work: false,
     max_block_level: 250,
     hf_activation_daa_score: u64::MAX,
+    hf_devfund_address: "pyrin:qpqtcnj0ap0hsjyjrshvk6hswd33hvlpcgq8hp84n0tavgfn6ummy0kykh0jf",
 };
 
 pub const SIMNET_PARAMS: Params = Params {
@@ -519,6 +523,7 @@ pub const SIMNET_PARAMS: Params = Params {
     skip_proof_of_work: true, // For simnet only, PoW can be simulated by default
     max_block_level: 250,
     hf_activation_daa_score: u64::MAX,
+    hf_devfund_address: "pyrin:qpqtcnj0ap0hsjyjrshvk6hswd33hvlpcgq8hp84n0tavgfn6ummy0kykh0jf",
 };
 
 pub const DEVNET_PARAMS: Params = Params {
@@ -576,4 +581,5 @@ pub const DEVNET_PARAMS: Params = Params {
     max_block_level: 250,
     pruning_proof_m: 1000,
     hf_activation_daa_score: u64::MAX,
+    hf_devfund_address: "pyrin:qpqtcnj0ap0hsjyjrshvk6hswd33hvlpcgq8hp84n0tavgfn6ummy0kykh0jf",
 };

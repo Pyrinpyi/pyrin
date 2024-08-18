@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use futures::{FutureExt, SinkExt};
+use futures::{FutureExt};
 use futures::channel::oneshot;
 use pyo3::prelude::*;
 use pyo3::types::{PyFunction, PyTuple};
@@ -131,7 +131,7 @@ impl PyAccount {
                 let balance = account.balance();
 
                 match balance {
-                    Some(balance) => {
+                    Some(_balance) => {
                         let balance = account.balance().unwrap_or_default();
                         Ok(PyBalance::new(
                             balance.mature,
@@ -230,13 +230,13 @@ impl PyAccount {
                 });
 
                 match &self.stop_listener {
-                    Some(stop_listener) => {
+                    Some(_stop_listener) => {
                         pyo3_asyncio::tokio::future_into_py(py, async move {
                             Ok(())
                         })
                     }
                     None => {
-                        let (stop_sender, stop_receiver) = oneshot::channel();
+                        let (stop_sender, _stop_receiver) = oneshot::channel();
                         self.stop_listener = Some(stop_sender);
 
                         fn emit_event(event: &str, args: impl IntoPy<Py<PyTuple>>, listeners: &ListenerCallback) {
@@ -270,7 +270,7 @@ impl PyAccount {
                                             match *msg {
                                                 Events::WalletPing { .. } => {},
                                                 Events::Connect { .. } => {},
-                                                Events::Disconnect { url, network_id } => {
+                                                Events::Disconnect { url, network_id: _ } => {
                                                     emit_event("disconnect", (url.unwrap_or("N/A".to_string()),), &listeners);
                                                     // TODO: Add reconnection logic ?
                                                 },
@@ -302,7 +302,7 @@ impl PyAccount {
                                                 Events::Stasis { .. } => {},
                                                 Events::Maturity { .. } => {}, // Handled by Balance TODO: We can give TransactionRecord data
                                                 Events::Discovery { .. } => {},
-                                                Events::Balance { balance, id } => {
+                                                Events::Balance { balance, id: _ } => {
                                                     let balance = balance.unwrap_or_default();
                                                     let balance = PyBalance::new(
                                                         balance.mature,

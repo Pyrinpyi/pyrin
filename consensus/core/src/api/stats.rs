@@ -2,7 +2,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use serde::{Deserialize, Serialize};
 
 #[cfg(not(target_family = "wasm"))]
-use pyo3::{prelude::*, pyclass};
+use pyo3::{pyclass};
 
 #[derive(Clone, Debug, Serialize, Deserialize, BorshSerialize, BorshDeserialize, Default)]
 #[serde(rename_all = "camelCase")]

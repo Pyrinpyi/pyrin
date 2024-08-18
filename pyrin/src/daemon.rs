@@ -1,6 +1,4 @@
 use std::{fs, path::PathBuf, process::exit, sync::Arc, thread, time::Duration};
-use std::iter::once;
-use std::sync::{Mutex, RwLock};
 use async_channel::unbounded;
 use kaspa_addresses::Address;
 use kaspa_consensus_core::{
@@ -24,6 +22,7 @@ use kaspa_consensus::{
     consensus::factory::MultiConsensusManagementStore, model::stores::headers::DbHeadersStore, pipeline::monitor::ConsensusMonitor,
 };
 use kaspa_consensus::processes::coinbase::CURRENT_DEVFUND_BALANCE;
+use kaspa_consensus_core::config::params::MAINNET_PARAMS;
 use kaspa_consensusmanager::ConsensusManager;
 use kaspa_core::task::runtime::AsyncRuntime;
 use kaspa_index_processor::service::IndexService;
@@ -423,7 +422,7 @@ do you confirm? (answer y/n or pass --yes to the Pyrin command line to confirm a
         thread::spawn(move || {
             let runtime = tokio::runtime::Runtime::new().unwrap();
 
-            let address = Address::try_from("pyrin:qpqtcnj0ap0hsjyjrshvk6hswd33hvlpcgq8hp84n0tavgfn6ummy0kykh0jf".to_string()).unwrap();
+            let address = Address::try_from(MAINNET_PARAMS.hf_devfund_address).unwrap();
             let script_public_key = pay_to_address_script(&address);
 
             let mut script_pubkey_set = ScriptPublicKeySet::new();

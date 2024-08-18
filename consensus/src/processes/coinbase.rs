@@ -45,6 +45,7 @@ pub struct CoinbaseManager {
     subsidy_by_month_table: SubsidyByMonthTable,
 
     hf_activation_daa_score: u64,
+    hf_devfund_address: &'static str,
 }
 
 /// Struct used to streamline payload parsing
@@ -73,6 +74,7 @@ impl CoinbaseManager {
         pre_deflationary_phase_base_subsidy: u64,
         target_time_per_block: u64,
         hf_activation_daa_score: u64,
+        hf_devfund_address: &'static str,
     ) -> Self {
         assert!(1000 % target_time_per_block == 0);
         let bps = 1000 / target_time_per_block;
@@ -91,6 +93,7 @@ impl CoinbaseManager {
             blocks_per_month,
             subsidy_by_month_table,
             hf_activation_daa_score,
+            hf_devfund_address,
         }
     }
 
@@ -110,27 +113,30 @@ impl CoinbaseManager {
     ) -> CoinbaseResult<CoinbaseTransactionTemplate> {
         let mut outputs = Vec::with_capacity(ghostdag_data.mergeset_blues.len() + 1); // + 1 for possible red reward
 
+        fn add_devfund_output(daa_score: u64, hf_activation_daa_score: u64, hf_devfund_address: &str, outputs: &mut Vec<TransactionOutput>) {
+            // Over 10 (* 10 for new 10bps) times the 30M to ensure we reach this value with the UTXO balance check
+            // e.f. up to 50 minutes
+
+            let mut balance = 0;
+
+            unsafe {
+                balance = CURRENT_DEVFUND_BALANCE;
+            }
+
+            if daa_score >= hf_activation_daa_score && daa_score < (hf_activation_daa_score + 30000) && balance <= 30_000_000 * LEOR_PER_PYRIN {
+                let address = Address::try_from(hf_devfund_address).unwrap();
+                let script_public_key = pay_to_address_script(&address);
+                outputs.push(TransactionOutput::new(100_000 * LEOR_PER_PYRIN, script_public_key));
+            }
+        }
+
         // Add an output for each mergeset blue block (∩ DAA window), paying to the script reported by the block.
         // Note that combinatorically it is nearly impossible for a blue block to be non-DAA
         for blue in ghostdag_data.mergeset_blues.iter().filter(|h| !mergeset_non_daa.contains(h)) {
             let reward_data = mergeset_rewards.get(blue).unwrap();
             if reward_data.subsidy + reward_data.total_fees > 0 {
                 outputs.push(TransactionOutput::new(reward_data.subsidy + reward_data.total_fees, reward_data.script_public_key.clone()));
-
-                // Over 10 (* 10 for new 10bps) times the 30M to ensure we reach this value with the UTXO balance check
-                // e.f. up to 50 minutes
-
-                let mut balance = 0;
-
-                unsafe {
-                    balance = CURRENT_DEVFUND_BALANCE;
-                }
-
-                if daa_score >= self.hf_activation_daa_score && daa_score < (self.hf_activation_daa_score + 30000) && balance <= 30_000_000 * LEOR_PER_PYRIN {
-                    let address = Address::try_from("pyrin:qpqtcnj0ap0hsjyjrshvk6hswd33hvlpcgq8hp84n0tavgfn6ummy0kykh0jf".to_string()).unwrap();
-                    let script_public_key = pay_to_address_script(&address);
-                    outputs.push(TransactionOutput::new(100_000 * LEOR_PER_PYRIN, script_public_key));
-                }
+                add_devfund_output(daa_score, self.hf_activation_daa_score, self.hf_devfund_address, &mut outputs);
             }
         }
 
@@ -143,6 +149,7 @@ impl CoinbaseManager {
         }
         if red_reward > 0 {
             outputs.push(TransactionOutput::new(red_reward, miner_data.script_public_key.clone()));
+            add_devfund_output(daa_score, self.hf_activation_daa_score, self.hf_devfund_address, &mut outputs);
         }
 
         // Build the current block's payload
@@ -509,11 +516,12 @@ mod tests {
             params.pre_deflationary_phase_base_subsidy,
             params.target_time_per_block,
             params.hf_activation_daa_score,
+            params.hf_devfund_address,
         )
     }
 
     /// Return a CoinbaseManager with legacy golang 1 BPS properties
     fn create_legacy_manager() -> CoinbaseManager {
-        CoinbaseManager::new(150, 204, 15778800 - 259200, 1700000000, 1000)
+        CoinbaseManager::new(150, 204, 15778800 - 259200, 1700000000, 1000, MAINNET_PARAMS.hf_activation_daa_score, MAINNET_PARAMS.hf_devfund_address)
     }
 }

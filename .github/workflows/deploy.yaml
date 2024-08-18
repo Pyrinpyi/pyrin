@@ -45,16 +45,11 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install zig on linux
-        if: runner.os == 'Linux'
-        uses: goto-bus-stop/setup-zig@v2 # needed for cargo-zigbuild
-
       - name: Build on Linux
         if: runner.os == 'Linux'
         # We're using musl to make the binaries statically linked and portable
         run: |
-          cargo install cargo-zigbuild
-          cargo --verbose zigbuild --bin pyrin --release --target x86_64-unknown-linux-gnu.2.27
+          cargo build --verbose --bin pyrin --release --target x86_64-unknown-linux-gnu
           mkdir bin || true
           cp target/x86_64-unknown-linux-gnu/release/pyrin bin/
           archive="bin/pyrin-${{ github.event.release.tag_name }}-linux-gnu-amd64.zip"

@@ -5,7 +5,6 @@ use pyo3::prelude::*;
 use kaspa_bip32::{Language, Mnemonic, WordCount};
 use kaspa_consensus_core::network::{NetworkId, NetworkType};
 use kaspa_wallet_core::account::Account;
-use kaspa_wallet_core::api::WalletApi;
 use kaspa_wallet_core::encryption::EncryptionKind;
 use kaspa_wallet_core::prelude::{AccountCreateArgsBip32, ConnectOptions, ConnectStrategy, PrvKeyDataCreateArgs, Secret};
 use kaspa_wallet_core::wallet::Wallet as WalletCore;

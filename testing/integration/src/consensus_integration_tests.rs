@@ -838,6 +838,7 @@ impl KaspadGoParams {
             max_block_level: self.MaxBlockLevel,
             pruning_proof_m: self.PruningProofM,
             hf_activation_daa_score: 0,
+            hf_devfund_address: "",
         }
     }
 }

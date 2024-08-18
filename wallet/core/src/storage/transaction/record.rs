@@ -430,7 +430,6 @@ impl TransactionRecord {
     // a progress value based on the pending period. It is assumed
     // that transactions in stasis are not visible to the user.
     pub fn maturity_progress(&self, current_daa_score: u64) -> Option<f64> {
-        let params = NetworkParams::from(self.network_id);
         let maturity = if self.is_coinbase() {
             MainnetHardforkBps::coinbase_maturity(current_daa_score)
         } else {

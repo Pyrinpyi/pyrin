@@ -32,7 +32,6 @@ use kaspa_pow::calc_block_level;
 use kaspa_utils::{binary_heap::BinaryHeapExtensions, vec::VecExtensions};
 use thiserror::Error;
 use kaspa_consensus_core::config::bps::MainnetHardforkBps;
-use kaspa_consensus_core::config::params::LEGACY_DEFAULT_GHOSTDAG_K;
 use crate::{
     consensus::{
         services::{DbDagTraversalManager, DbGhostdagManager, DbParentsManager, DbWindowManager},

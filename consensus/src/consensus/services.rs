@@ -139,6 +139,7 @@ impl ConsensusServices {
             params.pre_deflationary_phase_base_subsidy,
             params.target_time_per_block,
             params.hf_activation_daa_score,
+            params.hf_devfund_address,
         );
 
         let mass_calculator = MassCalculator::new(

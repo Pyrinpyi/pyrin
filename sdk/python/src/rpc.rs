@@ -1,14 +1,12 @@
 use std::collections::HashMap;
-use std::fmt::Debug;
-use std::ops::Deref;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::AtomicBool;
 
 use futures::FutureExt;
+// for `.fuse()`
 use futures::select_biased;
 use pyo3::prelude::*;
-// for `.fuse()`
 use pyo3::types::{PyDict, PyFunction, PyTuple};
 use workflow_core::channel::Channel;
 use workflow_core::prelude::spawn;
@@ -20,8 +18,6 @@ use kaspa_notify::scope::{BlockAddedScope, FinalityConflictResolvedScope, Finali
 use kaspa_rpc_core::{Notification, RpcAddress, RpcBlock, RpcContextualPeerAddress, RpcExtraData, RpcHash, RpcIpAddress, RpcSubnetworkId};
 use kaspa_rpc_core::api::ctl::RpcState;
 use kaspa_rpc_core::notify::connection::{ChannelConnection, ChannelType};
-use kaspa_wallet_core::account::Account;
-use kaspa_wallet_core::api::WalletApi;
 use kaspa_wallet_core::prelude::KaspaRpcClient;
 use kaspa_wallet_core::rpc::WrpcEncoding;
 
@@ -153,10 +149,10 @@ impl RPC {
                                     Notification::FinalityConflictResolved(ref payload) => {
                                         emit_event("finality-conflict-resolved", (payload.finality_block_hash,), &listeners);
                                     },
-                                    Notification::NewBlockTemplate(ref payload) => {
+                                    Notification::NewBlockTemplate(ref _payload) => {
                                         emit_event("new-block-template", (), &listeners);
                                     },
-                                    Notification::PruningPointUtxoSetOverride(ref payload) => {
+                                    Notification::PruningPointUtxoSetOverride(ref _payload) => {
                                         emit_event("pruning-point-utxo-set-override", (), &listeners);
                                     },
                                     Notification::UtxosChanged(ref payload) => {

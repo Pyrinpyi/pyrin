@@ -1,11 +1,10 @@
 use pyo3::prelude::*;
 
-use kaspa_bip32::{Language, Mnemonic, WordCount, Prefix as KeyPrefix};
+use kaspa_addresses::{Address, Prefix, Version};
+use kaspa_bip32::{Language, Mnemonic, WordCount};
 use kaspa_wallet_core::account::BIP32_ACCOUNT_KIND;
 use kaspa_wallet_core::prelude::{EncryptionKind, Secret};
 use kaspa_wallet_core::storage::PrvKeyData;
-use kaspa_addresses::{Address, Prefix, Version};
-use kaspa_bip32::secp256k1::serde::Serialize;
 
 #[pyclass]
 pub struct Bip32 {
