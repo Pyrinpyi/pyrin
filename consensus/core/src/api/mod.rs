@@ -1,7 +1,7 @@
 use futures_util::future::BoxFuture;
 use kaspa_muhash::MuHash;
 use std::sync::Arc;
-use consensus_core::KType;
+
 use crate::{
     acceptance_data::AcceptanceData,
     block::{Block, BlockTemplate, TemplateBuildMode, TemplateTransactionSelector, VirtualStateApproxId},
@@ -316,7 +316,7 @@ pub trait ConsensusApi: Send + Sync {
 
     // TODO: Think of a better name.
     // TODO: Delete this function once there's no need for go-kaspad backward compatibility.
-    fn get_trusted_block_associated_ghostdag_data_block_hashes(&self, hash: Hash, ghostdag_k: KType) -> ConsensusResult<Vec<Hash>> {
+    fn get_trusted_block_associated_ghostdag_data_block_hashes(&self, hash: Hash) -> ConsensusResult<Vec<Hash>> {
         unimplemented!()
     }
 

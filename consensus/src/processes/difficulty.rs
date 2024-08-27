@@ -18,7 +18,6 @@ use std::{
 
 use super::ghostdag::ordering::SortableBlock;
 use itertools::Itertools;
-use kaspa_consensus_core::config::bps::MainnetHardforkBps;
 
 trait DifficultyManagerExtension {
     fn headers_store(&self) -> &dyn HeaderStoreReader;
@@ -129,7 +128,7 @@ impl<T: HeaderStoreReader> FullDifficultyManager<T> {
         (self.internal_calc_daa_score(ghostdag_data, &mergeset_non_daa), mergeset_non_daa)
     }
 
-    pub fn calculate_difficulty_bits(&self, window: &BlockWindowHeap, daa_score: u64) -> u32 {
+    pub fn calculate_difficulty_bits(&self, window: &BlockWindowHeap) -> u32 {
         let mut difficulty_blocks = self.get_difficulty_blocks(window);
 
         // Until there are enough blocks for a valid calculation the difficulty should remain constant.
@@ -150,8 +149,7 @@ impl<T: HeaderStoreReader> FullDifficultyManager<T> {
         let targets_sum: Uint320 =
             difficulty_blocks.into_iter().map(|diff_block| Uint320::from(Uint256::from_compact_target_bits(diff_block.bits))).sum();
         let average_target = targets_sum / (difficulty_blocks_len);
-        let target_time_per_block = MainnetHardforkBps::target_time_per_block(daa_score);
-        let new_target = average_target * max(max_ts - min_ts, 1) / (target_time_per_block * difficulty_blocks_len);
+        let new_target = average_target * max(max_ts - min_ts, 1) / (self.target_time_per_block * difficulty_blocks_len);
         Uint256::try_from(new_target.min(self.max_difficulty_target)).expect("max target < Uint256::MAX").compact_target_bits()
     }
 
@@ -232,7 +230,7 @@ impl<T: HeaderStoreReader> SampledDifficultyManager<T> {
         (self.internal_calc_daa_score(ghostdag_data, &mergeset_non_daa), mergeset_non_daa)
     }
 
-    pub fn calculate_difficulty_bits(&self, window: &BlockWindowHeap, dda_score: u64) -> u32 {
+    pub fn calculate_difficulty_bits(&self, window: &BlockWindowHeap) -> u32 {
         // Note: this fn is duplicated (almost, see `* self.difficulty_sample_rate`) in Full and Sampled structs
         // so some alternate calculation can be investigated here.
         let mut difficulty_blocks = self.get_difficulty_blocks(window);
@@ -256,9 +254,7 @@ impl<T: HeaderStoreReader> SampledDifficultyManager<T> {
             difficulty_blocks.into_iter().map(|diff_block| Uint320::from(Uint256::from_compact_target_bits(diff_block.bits))).sum();
         let average_target = targets_sum / difficulty_blocks_len;
         let measured_duration = max(max_ts - min_ts, 1);
-        let target_time_per_block = MainnetHardforkBps::target_time_per_block(dda_score);
-        let difficulty_sample_rate = MainnetHardforkBps::difficulty_adjustment_sample_rate(dda_score);
-        let expected_duration = target_time_per_block * difficulty_sample_rate * difficulty_blocks_len; // This does differ from FullDifficultyManager version
+        let expected_duration = self.target_time_per_block * self.difficulty_sample_rate * difficulty_blocks_len; // This does differ from FullDifficultyManager version
         let new_target = average_target * measured_duration / expected_duration;
         Uint256::try_from(new_target.min(self.max_difficulty_target)).expect("max target < Uint256::MAX").compact_target_bits()
     }

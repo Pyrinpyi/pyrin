@@ -1,6 +1,10 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use wasm_bindgen::JsValue;
 use workflow_core::sendable::Sendable;
+use kaspa_utils::hex::ToHex;
+
+#[cfg(not(target_family = "wasm"))]
+use pyo3::{IntoPy, Py, PyAny, Python};
 
 pub mod int;
 pub mod uint;
@@ -10,6 +14,13 @@ construct_uint!(Uint192, 3, BorshSerialize, BorshDeserialize);
 construct_uint!(Uint256, 4);
 construct_uint!(Uint320, 5);
 construct_uint!(Uint3072, 48);
+
+#[cfg(not(target_family = "wasm"))]
+impl IntoPy<Py<PyAny>> for Uint192 {
+    fn into_py(self, py: Python) -> Py<PyAny> {
+        (&self.to_hex()).into_py(py)
+    }
+}
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -142,7 +153,21 @@ impl TryFrom<Uint256> for Uint192 {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Uint256, Uint3072};
+    use kaspa_utils::hex::ToHex;
+    use crate::{Uint192, Uint256, Uint3072};
+
+    #[test]
+    fn test_uint192_alignment_with_python_sdk() {
+        let a = Uint192::from_le_bytes([107, 48, 244, 242, 39, 227, 245, 35, 242, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        assert_eq!(a.to_string(), "13911436258498342826091")
+    }
+
+    #[test]
+    fn test_uint256_alignment_with_python_sdk() {
+        let a = Uint256::from_compact_target_bits(0x1d00ffff);
+        assert_eq!(a.to_hex(), "00000000ffff0000000000000000000000000000000000000000000000000000"); // "0xffff0000000000000000000000000000000000000000000000000000"
+        assert_eq!(a.to_le_bytes(), [0; 32]);
+    }
 
     #[test]
     fn test_overflow_bug() {

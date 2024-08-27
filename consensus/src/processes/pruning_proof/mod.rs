@@ -31,7 +31,7 @@ use kaspa_hashes::Hash;
 use kaspa_pow::calc_block_level;
 use kaspa_utils::{binary_heap::BinaryHeapExtensions, vec::VecExtensions};
 use thiserror::Error;
-use kaspa_consensus_core::config::bps::MainnetHardforkBps;
+
 use crate::{
     consensus::{
         services::{DbDagTraversalManager, DbGhostdagManager, DbParentsManager, DbWindowManager},
@@ -811,10 +811,10 @@ impl PruningProofManager {
     /// the search is halted and a partial chain is returned.
     ///
     /// The returned hashes are guaranteed to have GHOSTDAG data
-    pub(crate) fn get_ghostdag_chain_k_depth(&self, hash: Hash, ghostdag_k: KType) -> Vec<Hash> {
-        let mut hashes = Vec::with_capacity(ghostdag_k as usize + 1);
+    pub(crate) fn get_ghostdag_chain_k_depth(&self, hash: Hash) -> Vec<Hash> {
+        let mut hashes = Vec::with_capacity(self.ghostdag_k as usize + 1);
         let mut current = hash;
-        for _ in 0..=ghostdag_k {
+        for _ in 0..=self.ghostdag_k {
             hashes.push(current);
             let Some(parent) = self.ghostdag_stores[0].get_selected_parent(current).unwrap_option() else {
                 break;
@@ -850,12 +850,8 @@ impl PruningProofManager {
                 .block_window(&self.ghostdag_stores[0].get_data(anticone_block).unwrap(), WindowType::FullDifficultyWindow)
                 .unwrap();
 
-
-            let mut daa_score = 0 as u64;
-
             for hash in window.deref().iter().map(|block| block.0.hash) {
                 if let Entry::Vacant(e) = daa_window_blocks.entry(hash) {
-                    daa_score = max(daa_score, self.headers_store.get_header(hash).unwrap().daa_score);
                     e.insert(TrustedHeader {
                         header: self.headers_store.get_header(hash).unwrap(),
                         ghostdag: (&*self.ghostdag_stores[0].get_data(hash).unwrap()).into(),
@@ -863,7 +859,7 @@ impl PruningProofManager {
                 }
             }
 
-            let ghostdag_chain = self.get_ghostdag_chain_k_depth(anticone_block, MainnetHardforkBps::ghostdag_k_with_score(daa_score));
+            let ghostdag_chain = self.get_ghostdag_chain_k_depth(anticone_block);
             for hash in ghostdag_chain {
                 if let Entry::Vacant(e) = ghostdag_blocks.entry(hash) {
                     let ghostdag = self.ghostdag_stores[0].get_data(hash).unwrap();
@@ -942,7 +938,7 @@ impl PruningProofManager {
         let pp_bs = self.headers_store.get_blue_score(pp).unwrap();
 
         // The anticone is considered final only if the pruning point is at sufficient depth from virtual
-        if virtual_state.ghostdag_data.blue_score >= pp_bs + MainnetHardforkBps::anticone_finalization_depth(virtual_state.daa_score) {
+        if virtual_state.ghostdag_data.blue_score >= pp_bs + self.anticone_finalization_depth {
             let anticone = Arc::new(self.calculate_pruning_point_anticone_and_trusted_data(pp, virtual_state.parents.iter().copied()));
             cache_lock.replace(CachedPruningPointData { pruning_point: pp, data: anticone.clone() });
             Ok(anticone)

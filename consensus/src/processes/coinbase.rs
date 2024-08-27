@@ -1,15 +1,13 @@
+use std::{convert::TryInto, mem::size_of};
+
 use kaspa_consensus_core::{
+    BlockHashMap,
+    BlockHashSet,
     coinbase::*,
     errors::coinbase::{CoinbaseError, CoinbaseResult},
-    subnets,
-    tx::{ScriptPublicKey, ScriptVec, Transaction, TransactionOutput},
-    BlockHashMap, BlockHashSet,
+    subnets, tx::{ScriptPublicKey, ScriptVec, Transaction, TransactionOutput},
 };
-use std::{convert::TryInto, mem::size_of};
-use kaspa_addresses::Address;
-use kaspa_consensus_core::config::bps::{MainnetHardforkBps};
-use kaspa_consensus_core::constants::LEOR_PER_PYRIN;
-use kaspa_txscript::pay_to_address_script;
+
 use crate::{constants, model::stores::ghostdag::GhostdagData};
 
 const LENGTH_OF_BLUE_SCORE: usize = size_of::<u64>();
@@ -27,9 +25,6 @@ const SECONDS_PER_MONTH: u64 = 2629800;
 pub const SUBSIDY_BY_MONTH_TABLE_SIZE: usize = 366;
 pub type SubsidyByMonthTable = [u64; SUBSIDY_BY_MONTH_TABLE_SIZE];
 
-
-pub static mut CURRENT_DEVFUND_BALANCE: u64 = 0;
-
 #[derive(Clone)]
 pub struct CoinbaseManager {
     coinbase_payload_script_public_key_max_len: u8,
@@ -44,8 +39,7 @@ pub struct CoinbaseManager {
     /// Precomputed subsidy by month table
     subsidy_by_month_table: SubsidyByMonthTable,
 
-    hf_activation_daa_score: u64,
-    hf_devfund_address: &'static str,
+    hf_relaunch_daa_score: u64,
 }
 
 /// Struct used to streamline payload parsing
@@ -73,8 +67,7 @@ impl CoinbaseManager {
         deflationary_phase_daa_score: u64,
         pre_deflationary_phase_base_subsidy: u64,
         target_time_per_block: u64,
-        hf_activation_daa_score: u64,
-        hf_devfund_address: &'static str,
+        hf_relaunch_daa_score: u64,
     ) -> Self {
         assert!(1000 % target_time_per_block == 0);
         let bps = 1000 / target_time_per_block;
@@ -92,8 +85,7 @@ impl CoinbaseManager {
             target_time_per_block,
             blocks_per_month,
             subsidy_by_month_table,
-            hf_activation_daa_score,
-            hf_devfund_address,
+            hf_relaunch_daa_score,
         }
     }
 
@@ -113,30 +105,13 @@ impl CoinbaseManager {
     ) -> CoinbaseResult<CoinbaseTransactionTemplate> {
         let mut outputs = Vec::with_capacity(ghostdag_data.mergeset_blues.len() + 1); // + 1 for possible red reward
 
-        fn add_devfund_output(daa_score: u64, hf_activation_daa_score: u64, hf_devfund_address: &str, outputs: &mut Vec<TransactionOutput>) {
-            // Over 10 (* 10 for new 10bps) times the 30M to ensure we reach this value with the UTXO balance check
-            // e.f. up to 50 minutes
-
-            let mut balance = 0;
-
-            unsafe {
-                balance = CURRENT_DEVFUND_BALANCE;
-            }
-
-            if daa_score >= hf_activation_daa_score && daa_score < (hf_activation_daa_score + 30000) && balance <= 30_000_000 * LEOR_PER_PYRIN {
-                let address = Address::try_from(hf_devfund_address).unwrap();
-                let script_public_key = pay_to_address_script(&address);
-                outputs.push(TransactionOutput::new(100_000 * LEOR_PER_PYRIN, script_public_key));
-            }
-        }
-
         // Add an output for each mergeset blue block (∩ DAA window), paying to the script reported by the block.
         // Note that combinatorically it is nearly impossible for a blue block to be non-DAA
         for blue in ghostdag_data.mergeset_blues.iter().filter(|h| !mergeset_non_daa.contains(h)) {
             let reward_data = mergeset_rewards.get(blue).unwrap();
             if reward_data.subsidy + reward_data.total_fees > 0 {
-                outputs.push(TransactionOutput::new(reward_data.subsidy + reward_data.total_fees, reward_data.script_public_key.clone()));
-                add_devfund_output(daa_score, self.hf_activation_daa_score, self.hf_devfund_address, &mut outputs);
+                outputs
+                    .push(TransactionOutput::new(reward_data.subsidy + reward_data.total_fees, reward_data.script_public_key.clone()));
             }
         }
 
@@ -149,7 +124,6 @@ impl CoinbaseManager {
         }
         if red_reward > 0 {
             outputs.push(TransactionOutput::new(red_reward, miner_data.script_public_key.clone()));
-            add_devfund_output(daa_score, self.hf_activation_daa_score, self.hf_devfund_address, &mut outputs);
         }
 
         // Build the current block's payload
@@ -241,16 +215,15 @@ impl CoinbaseManager {
     }
 
     pub fn calc_block_subsidy(&self, daa_score: u64) -> u64 {
-        let deflationary_phase_daa_score = MainnetHardforkBps::deflationary_phase_daa_score(daa_score);
+        let hf_daa_score = self.hf_relaunch_daa_score;
+        let hf_daa_delta = hf_daa_score - 6_767_744; // Next reduction to be on 2024-09-20
 
-        if daa_score < deflationary_phase_daa_score {
-            return MainnetHardforkBps::pre_deflationary_phase_base_subsidy(daa_score);
+        if daa_score < hf_daa_score {
+            return self.pre_deflationary_phase_base_subsidy;
         }
 
-        let blocks_per_month = SECONDS_PER_MONTH * MainnetHardforkBps::get_bps(daa_score);
-
         let months_since_deflationary_phase_started =
-            ((daa_score - deflationary_phase_daa_score) / blocks_per_month) as usize;
+            ((daa_score - hf_daa_delta) / self.blocks_per_month) as usize + 3;
         if months_since_deflationary_phase_started >= self.subsidy_by_month_table.len() {
             *(self.subsidy_by_month_table).last().unwrap()
         } else {
@@ -302,14 +275,16 @@ const SUBSIDY_BY_MONTH_TABLE: [u64; 366] = [
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::params::MAINNET_PARAMS;
     use kaspa_consensus_core::{
         config::params::{Params, TESTNET11_PARAMS},
         constants::LEOR_PER_PYRIN,
         network::NetworkId,
         tx::scriptvec,
     };
+
+    use crate::params::MAINNET_PARAMS;
+
+    use super::*;
 
     #[test]
     fn calc_high_bps_total_rewards_delta() {
@@ -515,13 +490,12 @@ mod tests {
             params.deflationary_phase_daa_score,
             params.pre_deflationary_phase_base_subsidy,
             params.target_time_per_block,
-            params.hf_activation_daa_score,
-            params.hf_devfund_address,
+            params.hf_relaunch_daa_score,
         )
     }
 
     /// Return a CoinbaseManager with legacy golang 1 BPS properties
     fn create_legacy_manager() -> CoinbaseManager {
-        CoinbaseManager::new(150, 204, 15778800 - 259200, 1700000000, 1000, MAINNET_PARAMS.hf_activation_daa_score, MAINNET_PARAMS.hf_devfund_address)
+        CoinbaseManager::new(150, 204, 15778800 - 259200, 1700000000, 1000, 0)
     }
 }

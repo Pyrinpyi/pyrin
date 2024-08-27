@@ -37,6 +37,7 @@ pub struct Header {
     pub nonce: u64,
     #[pyo3(get)]
     pub daa_score: u64,
+    #[pyo3(get)]
     pub blue_work: BlueWorkType,
     #[pyo3(get)]
     pub blue_score: u64,

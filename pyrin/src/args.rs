@@ -1,25 +1,29 @@
-use clap::{arg, Arg, ArgAction, Command};
-use kaspa_consensus_core::{
-    config::Config,
-    network::{NetworkId, NetworkType},
-};
-use kaspa_core::kaspad_env::version;
-use kaspa_notify::address::tracker::Tracker;
-use kaspa_utils::networking::ContextualNetAddress;
-use kaspa_wrpc_server::address::WrpcNetAddress;
-use serde::Deserialize;
-use serde_with::{serde_as, DisplayFromStr};
 use std::{ffi::OsString, fs};
+use std::io::Read;
+use std::marker::{Send, Sync};
+// #[cfg(feature = "devnet-prealloc")]
+use std::sync::Arc;
+
+use clap::{arg, Arg, ArgAction, Command};
+use clap::parser::ValueSource::DefaultValue;
+use serde::Deserialize;
+use serde_with::{DisplayFromStr, serde_as};
 use toml::from_str;
 
 #[cfg(feature = "devnet-prealloc")]
 use kaspa_addresses::Address;
-#[cfg(feature = "devnet-prealloc")]
+use kaspa_consensus_core::{
+    config::Config,
+    network::{NetworkId, NetworkType},
+};
+// #[cfg(feature = "devnet-prealloc")]
 use kaspa_consensus_core::tx::{TransactionOutpoint, UtxoEntry};
+use kaspa_core::kaspad_env::version;
+use kaspa_notify::address::tracker::Tracker;
 #[cfg(feature = "devnet-prealloc")]
 use kaspa_txscript::pay_to_address_script;
-#[cfg(feature = "devnet-prealloc")]
-use std::sync::Arc;
+use kaspa_utils::networking::ContextualNetAddress;
+use kaspa_wrpc_server::address::WrpcNetAddress;
 
 #[serde_as]
 #[derive(Debug, Clone, Deserialize)]
@@ -465,8 +469,6 @@ impl Args {
     }
 }
 
-use clap::parser::ValueSource::DefaultValue;
-use std::marker::{Send, Sync};
 fn arg_match_unwrap_or<T: Clone + Send + Sync + 'static>(m: &clap::ArgMatches, arg_id: &str, default: T) -> T {
     m.get_one::<T>(arg_id).cloned().filter(|_| m.value_source(arg_id) != Some(DefaultValue)).unwrap_or(default)
 }

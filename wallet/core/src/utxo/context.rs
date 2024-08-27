@@ -374,7 +374,7 @@ impl UtxoContext {
                     context.mature.sorted_insert_binary_asc_by_key(utxo_entry.clone(), |entry| entry.amount_as_ref());
                 } else {
                     log_error!("Error: non-pending utxo promotion!");
-                    unreachable!("Error: non-pending utxo promotion!");
+                    // unreachable!("Error: non-pending utxo promotion!");
                 }
             }
 
@@ -400,7 +400,7 @@ impl UtxoContext {
                     context.pending.insert(utxo_entry.id(), utxo_entry.clone());
                 } else {
                     log_error!("Error: non-stasis utxo revival!");
-                    panic!("Error: non-stasis utxo revival!");
+                    // panic!("Error: non-stasis utxo revival!");
                 }
             }
 

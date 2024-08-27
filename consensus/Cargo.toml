@@ -42,6 +42,8 @@ serde.workspace = true
 smallvec.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
+zip = "2.2.0"
+
 
 rand = { workspace = true, features = ["small_rng"] }
 

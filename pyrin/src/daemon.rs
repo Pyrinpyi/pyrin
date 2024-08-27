@@ -1,43 +1,44 @@
-use std::{fs, path::PathBuf, process::exit, sync::Arc, thread, time::Duration};
+use std::{fs, path::PathBuf, process::exit, sync::Arc, time::Duration};
+use std::io::{Cursor, Read};
+
 use async_channel::unbounded;
-use kaspa_addresses::Address;
-use kaspa_consensus_core::{
-    config::ConfigBuilder,
-    errors::config::{ConfigError, ConfigResult},
-};
-use kaspa_consensus_notify::{root::ConsensusNotificationRoot, service::NotifyService};
-use kaspa_core::{core::Core, info, trace};
-use kaspa_core::{kaspad_env::version, task::tick::TickService};
-use kaspa_database::prelude::CachePolicy;
-use kaspa_grpc_server::service::GrpcService;
-use kaspa_notify::{address::tracker::Tracker, subscription::context::SubscriptionContext};
-use kaspa_rpc_service::service::RpcCoreService;
-use kaspa_txscript::caches::TxScriptCacheCounters;
-use kaspa_utils::networking::ContextualNetAddress;
-use kaspa_utils_tower::counters::TowerConnectionCounters;
+use serde::{Deserialize, Serialize};
 
 use kaspa_addressmanager::AddressManager;
 use kaspa_consensus::{consensus::factory::Factory as ConsensusFactory, pipeline::ProcessingCounters};
 use kaspa_consensus::{
     consensus::factory::MultiConsensusManagementStore, model::stores::headers::DbHeadersStore, pipeline::monitor::ConsensusMonitor,
 };
-use kaspa_consensus::processes::coinbase::CURRENT_DEVFUND_BALANCE;
-use kaspa_consensus_core::config::params::MAINNET_PARAMS;
+use kaspa_consensus_core::{
+    config::ConfigBuilder,
+    errors::config::{ConfigError, ConfigResult},
+};
+use kaspa_consensus_core::config::Config;
+use kaspa_consensus_core::utxo::utxo_collection::UtxoCollection;
+use kaspa_consensus_notify::{root::ConsensusNotificationRoot, service::NotifyService};
 use kaspa_consensusmanager::ConsensusManager;
+use kaspa_core::{core::Core, error, info, trace};
+use kaspa_core::{kaspad_env::version, task::tick::TickService};
 use kaspa_core::task::runtime::AsyncRuntime;
+use kaspa_database::prelude::CachePolicy;
+use kaspa_grpc_server::service::GrpcService;
 use kaspa_index_processor::service::IndexService;
 use kaspa_mining::{
     manager::{MiningManager, MiningManagerProxy},
-    monitor::MiningMonitor,
     MiningCounters,
+    monitor::MiningMonitor,
 };
-use kaspa_mining::model::owner_txs::ScriptPublicKeySet;
+use kaspa_notify::{address::tracker::Tracker, subscription::context::SubscriptionContext};
 use kaspa_p2p_flows::{flow_context::FlowContext, service::P2pService};
-
 use kaspa_perf_monitor::{builder::Builder as PerfMonitorBuilder, counters::CountersSnapshot};
-use kaspa_txscript::pay_to_address_script;
+use kaspa_rpc_service::service::RpcCoreService;
+use kaspa_txscript::caches::TxScriptCacheCounters;
+use kaspa_utils::networking::ContextualNetAddress;
+use kaspa_utils_tower::counters::TowerConnectionCounters;
 use kaspa_utxoindex::{api::UtxoIndexProxy, UtxoIndex};
 use kaspa_wrpc_server::service::{Options as WrpcServerOptions, WebSocketCounters as WrpcServerCounters, WrpcEncoding, WrpcService};
+
+use crate::args::Args;
 
 /// Desired soft FD limit that needs to be configured
 /// for the kaspad process.
@@ -47,8 +48,6 @@ pub const DESIRED_DAEMON_SOFT_FD_LIMIT: u64 = 8 * 1024;
 /// acceptable limit of `4096`, but a setting below
 /// this value may impact the database performance).
 pub const MINIMUM_DAEMON_SOFT_FD_LIMIT: u64 = 4 * 1024;
-
-use crate::args::Args;
 
 const DEFAULT_DATA_DIR: &str = "datadir";
 const CONSENSUS_DB: &str = "consensus";
@@ -416,37 +415,6 @@ do you confirm? (answer y/n or pass --yes to the Pyrin command line to confirm a
             .unwrap();
         let utxoindex = UtxoIndexProxy::new(UtxoIndex::new(consensus_manager.clone(), utxoindex_db).unwrap());
         let index_service = Arc::new(IndexService::new(&notify_service.notifier(), subscription_context.clone(), Some(utxoindex)));
-
-        let index_service_clone = index_service.clone();
-
-        thread::spawn(move || {
-            let runtime = tokio::runtime::Runtime::new().unwrap();
-
-            let address = Address::try_from(MAINNET_PARAMS.hf_devfund_address).unwrap();
-            let script_public_key = pay_to_address_script(&address);
-
-            let mut script_pubkey_set = ScriptPublicKeySet::new();
-            script_pubkey_set.insert(script_public_key);
-
-            loop {
-                // Use the AsyncRuntime to execute the async operation
-                let balance_result = runtime.block_on(async {
-                    index_service_clone
-                        .utxoindex()
-                        .unwrap()
-                        .get_balance_by_script_public_keys(script_pubkey_set.clone())
-                        .await
-                });
-
-                let balance: u64 = balance_result.unwrap().values().sum();
-
-                unsafe {
-                    CURRENT_DEVFUND_BALANCE = balance;
-                }
-
-                thread::sleep(Duration::from_millis(100));
-            }
-        });
 
         Some(index_service)
     } else {

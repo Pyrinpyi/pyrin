@@ -12,8 +12,7 @@ use kaspa_p2p_lib::{
     IncomingRoute, Router,
 };
 use log::debug;
-use kaspa_consensus_core::config::bps::MainnetHardforkBps;
-use kaspa_consensus_core::config::params::LEGACY_DEFAULT_GHOSTDAG_K;
+
 use crate::{flow_context::FlowContext, flow_trait::Flow, v5::ibd::IBD_BATCH_SIZE};
 
 pub struct PruningPointAndItsAnticoneRequestsFlow {
@@ -75,13 +74,6 @@ impl PruningPointAndItsAnticoneRequestsFlow {
             let ghostdag_data_hash_to_index =
                 BlockHashMap::from_iter(ghostdag_data.iter().enumerate().map(|(i, trusted_gd)| (trusted_gd.hash, i)));
 
-            let trusted_header = daa_window.first();
-            let mut ghostdag_k = LEGACY_DEFAULT_GHOSTDAG_K;
-
-            if trusted_header.is_some() {
-                ghostdag_k = MainnetHardforkBps::ghostdag_k_with_score(trusted_header.unwrap().header.daa_score);
-            }
-
             for hashes in pp_anticone.chunks(IBD_BATCH_SIZE) {
                 for hash in hashes {
                     let hash = *hash;
@@ -92,7 +84,7 @@ impl PruningPointAndItsAnticoneRequestsFlow {
                         .map(|hash| *daa_window_hash_to_index.get(&hash).unwrap() as u64)
                         .collect_vec();
                     let ghostdag_data_indices = session
-                        .async_get_trusted_block_associated_ghostdag_data_block_hashes(hash, ghostdag_k)
+                        .async_get_trusted_block_associated_ghostdag_data_block_hashes(hash)
                         .await?
                         .into_iter()
                         .map(|hash| *ghostdag_data_hash_to_index.get(&hash).unwrap() as u64)

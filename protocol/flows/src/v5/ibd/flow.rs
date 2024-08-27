@@ -33,7 +33,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::time::sleep;
-use kaspa_consensus_core::config::bps::MainnetHardforkBps;
+
 use super::{progress::ProgressReporter, HeadersChunk, PruningPointUtxosetChunkStream, IBD_BATCH_SIZE};
 
 /// Flow for managing IBD - Initial Block Download
@@ -189,10 +189,10 @@ impl IbdFlow {
         if relay_header.blue_score >= hst_header.blue_score + self.ctx.config.pruning_depth
             && relay_header.blue_work > hst_header.blue_work
         {
-            if unix_now() > consensus.async_creation_timestamp().await + MainnetHardforkBps::finality_duration(hst_header.daa_score) {
+            if unix_now() > consensus.async_creation_timestamp().await + self.ctx.config.finality_duration() {
                 let fp = consensus.async_finality_point().await;
                 let fp_ts = consensus.async_get_header(fp).await?.timestamp;
-                if unix_now() < fp_ts + MainnetHardforkBps::finality_depth(hst_header.daa_score) * 3 / 2 {
+                if unix_now() < fp_ts + self.ctx.config.finality_duration() * 3 / 2 {
                     // We reject the headers proof if the node has a relatively up-to-date finality point and current
                     // consensus has matured for long enough (and not recently synced). This is mostly a spam-protector
                     // since subsequent checks identify these violations as well

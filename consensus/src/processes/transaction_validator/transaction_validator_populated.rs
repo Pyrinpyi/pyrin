@@ -1,6 +1,5 @@
 use crate::constants::{MAX_SOMPI, SEQUENCE_LOCK_TIME_DISABLED, SEQUENCE_LOCK_TIME_MASK};
 use kaspa_consensus_core::{hashing::sighash::SigHashReusedValues, tx::VerifiableTransaction};
-use kaspa_consensus_core::config::bps::MainnetHardforkBps;
 use kaspa_core::warn;
 use kaspa_txscript::{get_sig_op_count, TxScriptEngine};
 
@@ -55,14 +54,14 @@ impl TransactionValidator {
         if let Some((index, (input, entry))) = tx
             .populated_inputs()
             .enumerate()
-            .find(|(_, (_, entry))| entry.is_coinbase && entry.block_daa_score + MainnetHardforkBps::coinbase_maturity(entry.block_daa_score) > pov_daa_score)
+            .find(|(_, (_, entry))| entry.is_coinbase && entry.block_daa_score + self.coinbase_maturity > pov_daa_score)
         {
             return Err(TxRuleError::ImmatureCoinbaseSpend(
                 index,
                 input.previous_outpoint,
                 entry.block_daa_score,
                 pov_daa_score,
-                MainnetHardforkBps::coinbase_maturity(entry.block_daa_score),
+                self.coinbase_maturity,
             ));
         }
 

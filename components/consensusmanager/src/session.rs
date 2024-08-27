@@ -2,11 +2,12 @@
 //!
 //! We use newtypes in order to simplify changing the underlying lock in the future
 
-use kaspa_consensus_core::{acceptance_data::AcceptanceData, api::{BlockCount, BlockValidationFutures, ConsensusApi, ConsensusStats, DynConsensus}, block::Block, blockstatus::BlockStatus, daa_score_timestamp::DaaScoreTimestamp, errors::consensus::ConsensusResult, header::Header, pruning::{PruningPointProof, PruningPointTrustedData, PruningPointsList}, trusted::{ExternalGhostdagData, TrustedBlock}, tx::{MutableTransaction, Transaction, TransactionOutpoint, UtxoEntry}, BlockHashSet, BlueWorkType, ChainPath, Hash, KType};
-use kaspa_utils::sync::rwlock::*;
 use std::{ops::Deref, sync::Arc};
 
 pub use tokio::task::spawn_blocking;
+
+use kaspa_consensus_core::{acceptance_data::AcceptanceData, api::{BlockCount, BlockValidationFutures, ConsensusApi, ConsensusStats, DynConsensus}, block::Block, BlockHashSet, blockstatus::BlockStatus, BlueWorkType, ChainPath, daa_score_timestamp::DaaScoreTimestamp, errors::consensus::ConsensusResult, Hash, header::Header, pruning::{PruningPointProof, PruningPointsList, PruningPointTrustedData}, trusted::{ExternalGhostdagData, TrustedBlock}, tx::{MutableTransaction, Transaction, TransactionOutpoint, UtxoEntry}};
+use kaspa_utils::sync::rwlock::*;
 
 use crate::BlockProcessingBatch;
 
@@ -396,8 +397,8 @@ impl ConsensusSessionOwned {
         self.clone().spawn_blocking(move |c| c.get_daa_window(hash)).await
     }
 
-    pub async fn async_get_trusted_block_associated_ghostdag_data_block_hashes(&self, hash: Hash, ghostdag_k: KType) -> ConsensusResult<Vec<Hash>> {
-        self.clone().spawn_blocking(move |c| c.get_trusted_block_associated_ghostdag_data_block_hashes(hash, ghostdag_k)).await
+    pub async fn async_get_trusted_block_associated_ghostdag_data_block_hashes(&self, hash: Hash) -> ConsensusResult<Vec<Hash>> {
+        self.clone().spawn_blocking(move |c| c.get_trusted_block_associated_ghostdag_data_block_hashes(hash)).await
     }
 
     pub async fn async_estimate_network_hashes_per_second(

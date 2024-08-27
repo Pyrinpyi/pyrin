@@ -72,7 +72,6 @@ use std::{
 };
 use tokio::join;
 use workflow_rpc::server::WebSocketCounters as WrpcServerCounters;
-use kaspa_consensus_core::config::bps::MainnetHardforkBps;
 
 /// A service implementing the Rpc API at kaspa_rpc_core level.
 ///
@@ -620,8 +619,7 @@ NOTE: This error usually indicates an RPC conversion error between the node and 
                 // For daa_score later than the last header, we estimate in milliseconds based on the difference
                 let time_adjustment = if header_idx == 0 {
                     // estimate milliseconds = (daa_score * target_time_per_block)
-                    let target_time_per_block = MainnetHardforkBps::target_time_per_block(curr_daa_score);
-                    (curr_daa_score - header.daa_score).checked_mul(target_time_per_block).unwrap_or(u64::MAX)
+                    (curr_daa_score - header.daa_score).checked_mul(self.config.target_time_per_block).unwrap_or(u64::MAX)
                 } else {
                     // "next" header is the one that we processed last iteration
                     let next_header = &headers[header_idx - 1];

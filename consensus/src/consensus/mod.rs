@@ -1,12 +1,33 @@
-pub mod cache_policy_builder;
-pub mod ctl;
-pub mod factory;
-pub mod services;
-pub mod storage;
-pub mod test_consensus;
+use std::{
+    future::Future,
+    iter::once,
+    ops::Deref,
+    sync::{Arc, atomic::Ordering},
+};
+use std::{
+    sync::atomic::AtomicBool,
+    thread::{self, JoinHandle},
+};
+use std::cmp;
 
-#[cfg(feature = "devnet-prealloc")]
-mod utxo_set_override;
+use crossbeam_channel::{
+    bounded as bounded_crossbeam, Receiver as CrossbeamReceiver, Sender as CrossbeamSender, unbounded as unbounded_crossbeam,
+};
+use itertools::Itertools;
+use tokio::sync::oneshot;
+
+use kaspa_consensus_core::{acceptance_data::AcceptanceData, api::{BlockValidationFutures, ConsensusApi, ConsensusStats, stats::BlockCount}, block::{Block, BlockTemplate, TemplateBuildMode, TemplateTransactionSelector, VirtualStateApproxId}, blockhash::BlockHashExtensions, BlockHashSet, blockstatus::BlockStatus, BlueWorkType, ChainPath, coinbase::MinerData, daa_score_timestamp::DaaScoreTimestamp, errors::{
+    coinbase::CoinbaseResult,
+    consensus::{ConsensusError, ConsensusResult},
+    tx::TxResult,
+}, errors::{difficulty::DifficultyError, pruning::PruningImportError}, header::Header, muhash::MuHashExtensions, network::NetworkType, pruning::{PruningPointProof, PruningPointsList, PruningPointTrustedData}, trusted::{ExternalGhostdagData, TrustedBlock}, tx::{MutableTransaction, Transaction, TransactionOutpoint, UtxoEntry}};
+use kaspa_consensus_notify::root::ConsensusNotificationRoot;
+use kaspa_consensusmanager::{SessionLock, SessionReadGuard};
+use kaspa_core::info;
+use kaspa_database::prelude::StoreResultExtensions;
+use kaspa_hashes::Hash;
+use kaspa_muhash::MuHash;
+use kaspa_txscript::caches::TxScriptCacheCounters;
 
 use crate::{
     config::Config,
@@ -16,6 +37,7 @@ use crate::{
         stores::{
             acceptance_data::AcceptanceDataStoreReader,
             block_transactions::BlockTransactionsStoreReader,
+            DB,
             ghostdag::{GhostdagData, GhostdagStoreReader},
             headers::{CompactHeaderData, HeaderStoreReader},
             headers_selected_tip::HeadersSelectedTipStoreReader,
@@ -25,54 +47,31 @@ use crate::{
             statuses::StatusesStoreReader,
             tips::TipsStoreReader,
             utxo_set::{UtxoSetStore, UtxoSetStoreReader},
-            DB,
         },
     },
     pipeline::{
         body_processor::BlockBodyProcessor,
         deps_manager::{BlockProcessingMessage, BlockResultSender, BlockTask, VirtualStateProcessingMessage},
         header_processor::HeaderProcessor,
+        ProcessingCounters,
         pruning_processor::processor::{PruningProcessingMessage, PruningProcessor},
         virtual_processor::{errors::PruningImportResult, VirtualStateProcessor},
-        ProcessingCounters,
     },
     processes::window::{WindowManager, WindowType},
 };
-use kaspa_consensus_core::{acceptance_data::AcceptanceData, api::{stats::BlockCount, BlockValidationFutures, ConsensusApi, ConsensusStats}, block::{Block, BlockTemplate, TemplateBuildMode, TemplateTransactionSelector, VirtualStateApproxId}, blockhash::BlockHashExtensions, blockstatus::BlockStatus, coinbase::MinerData, daa_score_timestamp::DaaScoreTimestamp, errors::{
-    coinbase::CoinbaseResult,
-    consensus::{ConsensusError, ConsensusResult},
-    tx::TxResult,
-}, errors::{difficulty::DifficultyError, pruning::PruningImportError}, header::Header, muhash::MuHashExtensions, network::NetworkType, pruning::{PruningPointProof, PruningPointTrustedData, PruningPointsList}, trusted::{ExternalGhostdagData, TrustedBlock}, tx::{MutableTransaction, Transaction, TransactionOutpoint, UtxoEntry}, BlockHashSet, BlueWorkType, ChainPath, KType};
-use kaspa_consensus_notify::root::ConsensusNotificationRoot;
-
-use crossbeam_channel::{
-    bounded as bounded_crossbeam, unbounded as unbounded_crossbeam, Receiver as CrossbeamReceiver, Sender as CrossbeamSender,
-};
-use itertools::Itertools;
-use kaspa_consensusmanager::{SessionLock, SessionReadGuard};
-
-use kaspa_database::prelude::StoreResultExtensions;
-use kaspa_hashes::Hash;
-use kaspa_muhash::MuHash;
-use kaspa_txscript::caches::TxScriptCacheCounters;
-
-use std::{
-    future::Future,
-    iter::once,
-    ops::Deref,
-    sync::{atomic::Ordering, Arc},
-};
-use std::{
-    sync::atomic::AtomicBool,
-    thread::{self, JoinHandle},
-};
-use tokio::sync::oneshot;
+use crate::model::stores::selected_chain::SelectedChainStoreReader;
 
 use self::{services::ConsensusServices, storage::ConsensusStorage};
 
-use crate::model::stores::selected_chain::SelectedChainStoreReader;
+pub mod cache_policy_builder;
+pub mod ctl;
+pub mod factory;
+pub mod services;
+pub mod storage;
+pub mod test_consensus;
 
-use std::cmp;
+// #[cfg(feature = "devnet-prealloc")]
+mod utxo_set_override;
 
 pub struct Consensus {
     // DB
@@ -664,7 +663,14 @@ impl ConsensusApi for Consensus {
     fn append_imported_pruning_point_utxos(&self, utxoset_chunk: &[(TransactionOutpoint, UtxoEntry)], current_multiset: &mut MuHash) {
         let mut pruning_utxoset_write = self.pruning_utxoset_stores.write();
         pruning_utxoset_write.utxo_set.write_many(utxoset_chunk).unwrap();
+
+        let mut utxos_loaded: usize = 0;
         for (outpoint, entry) in utxoset_chunk {
+            if utxos_loaded % 400_000 == 0 || utxos_loaded >= (utxoset_chunk.len() - 1) {
+                info!("Importing UTXO dump to pruning point utxos ({:.2}%)", (utxos_loaded as f64 / utxoset_chunk.len() as f64) * 100.0);
+            }
+
+            utxos_loaded += 1;
             current_multiset.add_utxo(outpoint, entry);
         }
     }
@@ -855,7 +861,7 @@ impl ConsensusApi for Consensus {
             .collect())
     }
 
-    fn get_trusted_block_associated_ghostdag_data_block_hashes(&self, hash: Hash, ghostdag_k: KType) -> ConsensusResult<Vec<Hash>> {
+    fn get_trusted_block_associated_ghostdag_data_block_hashes(&self, hash: Hash) -> ConsensusResult<Vec<Hash>> {
         let _guard = self.pruning_lock.blocking_read();
         self.validate_block_exists(hash)?;
 
@@ -869,7 +875,7 @@ impl ConsensusApi for Consensus {
         // back and then we would be able to assert we actually got `k + 1` blocks, however we choose to
         // simply ignore, since if the data was truly missing we wouldn't accept the staging consensus in
         // the first place
-        Ok(self.services.pruning_proof_manager.get_ghostdag_chain_k_depth(hash, ghostdag_k))
+        Ok(self.services.pruning_proof_manager.get_ghostdag_chain_k_depth(hash))
     }
 
     fn create_block_locator_from_pruning_point(&self, high: Hash, limit: usize) -> ConsensusResult<Vec<Hash>> {

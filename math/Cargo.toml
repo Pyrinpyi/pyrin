@@ -24,6 +24,9 @@ workflow-core.workspace = true
 workflow-log.workspace = true
 workflow-wasm.workspace = true
 
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+pyo3.workspace = true
+
 [dev-dependencies]
 rand_chacha.workspace = true
 criterion.workspace = true

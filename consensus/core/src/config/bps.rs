@@ -1,6 +1,4 @@
-use std::cmp::min;
 use crate::config::constants::consensus::*;
-use crate::config::params::MAINNET_PARAMS;
 use crate::KType;
 
 /// Calculates the k parameter of the GHOSTDAG protocol such that anticones lager than k will be created
@@ -37,6 +35,7 @@ impl<const BPS: u64> Bps<BPS> {
     /// Returns the GHOSTDAG K value which was pre-computed for this BPS
     /// (see [`calculate_ghostdag_k`] and [`gen_ghostdag_table`] for the full calculation)
     #[rustfmt::skip]
+    #[inline(always)]
     pub const fn ghostdag_k() -> KType {
         match BPS {
             1 => 18, 2 => 31, 3 => 43, 4 => 55, 5 => 67, 6 => 79, 7 => 90, 8 => 102, 9 => 113, 10 => 124,
@@ -47,6 +46,7 @@ impl<const BPS: u64> Bps<BPS> {
         }
     }
 
+    #[inline(always)]
     /// Returns the target time per block in milliseconds
     pub const fn target_time_per_block() -> u64 {
         if 1000 % BPS != 0 {
@@ -55,6 +55,7 @@ impl<const BPS: u64> Bps<BPS> {
         1000 / BPS
     }
 
+    #[inline(always)]
     /// Returns the max number of direct parents a block can have
     pub const fn max_block_parents() -> u8 {
         let val = (Self::ghostdag_k() / 2) as u8;
@@ -74,6 +75,7 @@ impl<const BPS: u64> Bps<BPS> {
         }
     }
 
+    #[inline(always)]
     pub const fn mergeset_size_limit() -> u64 {
         let val = Self::ghostdag_k() as u64 * 2;
         if val < 180 {
@@ -87,53 +89,70 @@ impl<const BPS: u64> Bps<BPS> {
         }
     }
 
+    #[inline(always)]
     pub const fn merge_depth_bound() -> u64 {
         BPS * MERGE_DEPTH_DURATION
     }
 
+    #[inline(always)]
     pub const fn finality_depth() -> u64 {
         BPS * NEW_FINALITY_DURATION
     }
 
+    #[inline(always)]
     /// Limit used to previously calculate the pruning depth.
     const fn prev_mergeset_size_limit() -> u64 {
         Self::ghostdag_k() as u64 * 10
     }
 
+    #[inline(always)]
     pub const fn pruning_depth() -> u64 {
         // Based on the analysis at https://github.com/kaspanet/docs/blob/main/Reference/prunality/Prunality.pdf
         // and on the decomposition of merge depth (rule R-I therein) from finality depth (φ)
         // We add an additional merge depth unit as a safety margin for anticone finalization
-        Self::finality_depth()
+        let pruning_depth: u64 = Self::finality_depth()
             + Self::merge_depth_bound() * 2
             + 4 * Self::prev_mergeset_size_limit() * Self::ghostdag_k() as u64
             + 2 * Self::ghostdag_k() as u64
-            + 2
+            + 2;
+
 
         // TODO (HF or restart of TN11):
         // Return `Self::finality_depth() * 3` and assert that this value is equal or larger than the above expression.
         // This will give us a round easy number to track which is not sensitive to minor changes in other related params.
+        let v = Self::finality_depth() * 3;
+
+        if v > pruning_depth {
+            v
+        } else {
+            pruning_depth
+        }
     }
 
+    #[inline(always)]
     pub const fn pruning_proof_m() -> u64 {
         // No need to scale this constant with BPS since the important block levels (higher) remain logarithmically short
         PRUNING_PROOF_M
     }
 
+    #[inline(always)]
     /// Sample rate for sampling blocks to the median time window (in block units, hence dependent on BPS)
     pub const fn past_median_time_sample_rate() -> u64 {
         BPS * PAST_MEDIAN_TIME_SAMPLE_INTERVAL
     }
 
+    #[inline(always)]
     /// Sample rate for sampling blocks to the DA window (in block units, hence dependent on BPS)
     pub const fn difficulty_adjustment_sample_rate() -> u64 {
         BPS * DIFFICULTY_WINDOW_SAMPLE_INTERVAL
     }
 
+    #[inline(always)]
     pub const fn coinbase_maturity() -> u64 {
         BPS * LEGACY_COINBASE_MATURITY
     }
 
+    #[inline(always)]
     /// DAA score after which the pre-deflationary period switches to the deflationary period.
     ///
     /// This number is calculated as follows:
@@ -146,195 +165,9 @@ impl<const BPS: u64> Bps<BPS> {
         BPS * (15778800 - 259200)
     }
 
+    #[inline(always)]
     pub const fn pre_deflationary_phase_base_subsidy() -> u64 {
         1700000000 / BPS
-    }
-}
-
-/// Struct representing network blocks-per-second. Provides a bunch of const functions
-/// computing various constants which are functions of the BPS value
-pub struct MainnetHardforkBps;
-
-pub const HF_BPS: u64 = 10;
-pub const PRE_HF_BPS: u64 = 1;
-
-impl MainnetHardforkBps {
-    pub const fn bps() -> u64 {
-        HF_BPS
-    }
-
-    /// Returns the GHOSTDAG K value which was pre-computed for this BPS
-    /// (see [`calculate_ghostdag_k`] and [`gen_ghostdag_table`] for the full calculation)
-    #[rustfmt::skip]
-    pub const fn ghostdag_k() -> KType {
-        match HF_BPS {
-            1 => 18, 2 => 31, 3 => 43, 4 => 55, 5 => 67, 6 => 79, 7 => 90, 8 => 102, 9 => 113, 10 => 124,
-            11 => 135, 12 => 146, 13 => 157, 14 => 168, 15 => 179, 16 => 190, 17 => 201, 18 => 212, 19 => 223, 20 => 234,
-            21 => 244, 22 => 255, 23 => 266, 24 => 277, 25 => 288, 26 => 298, 27 => 309, 28 => 320, 29 => 330, 30 => 341,
-            31 => 352, 32 => 362,
-            _ => panic!("see gen_ghostdag_table for currently supported values"),
-        }
-    }
-
-    /// Returns the GHOSTDAG K value which was pre-computed for this BPS
-    /// (see [`calculate_ghostdag_k`] and [`gen_ghostdag_table`] for the full calculation)
-    #[rustfmt::skip]
-    pub const fn ghostdag_k_with_score(daa_score: u64) -> KType {
-        match Self::get_bps(daa_score) {
-            1 => 18, 2 => 31, 3 => 43, 4 => 55, 5 => 67, 6 => 79, 7 => 90, 8 => 102, 9 => 113, 10 => 124,
-            11 => 135, 12 => 146, 13 => 157, 14 => 168, 15 => 179, 16 => 190, 17 => 201, 18 => 212, 19 => 223, 20 => 234,
-            21 => 244, 22 => 255, 23 => 266, 24 => 277, 25 => 288, 26 => 298, 27 => 309, 28 => 320, 29 => 330, 30 => 341,
-            31 => 352, 32 => 362,
-            _ => panic!("see gen_ghostdag_table for currently supported values"),
-        }
-    }
-
-    /// Returns the target time per block in milliseconds
-    #[inline]
-    pub const fn target_time_per_block(daa_score: u64) -> u64 {
-        let bps = Self::get_bps(daa_score);
-
-        if 1000 % bps != 0 {
-            panic!("target_time_per_block is in milliseconds hence BPS must divide 1000 with no remainder")
-        }
-        1000 / bps
-    }
-
-    /// Returns the max number of direct parents a block can have
-    #[inline]
-    pub const fn max_block_parents() -> u8 {
-        let val = (Self::ghostdag_k() / 2) as u8;
-        if val < 10 {
-            10
-        } else if val > 16 {
-            // We currently limit the number of parents by 16 in order to preserve processing performance
-            // and to prevent number of parent references per network round from growing quadratically with
-            // BPS. As BPS might grow beyond 10 this will mean that blocks will reference less parents than
-            // the average number of DAG tips. Which means relying on randomness between network peers for ensuring
-            // that all tips are eventually merged. We conjecture that with high probability every block will
-            // be merged after a log number of rounds. For mainnet this requires an increase to the value of GHOSTDAG
-            // K accompanied by a short security analysis, or moving to the parameterless DAGKNIGHT.
-            16
-        } else {
-            val
-        }
-    }
-
-    #[inline]
-    pub const fn mergeset_size_limit() -> u64 {
-        let val = Self::ghostdag_k() as u64 * 2;
-        if val < 180 {
-            180
-        } else if val > 512 {
-            // Bounded relatively low because we have storage complexity of O(#headers * mergeset_limit) coming
-            // from reachability and GHOSTDAG stores (GHOSTDAG is avoidable but reachability is must).
-            512
-        } else {
-            val
-        }
-    }
-
-    #[inline]
-    pub const fn merge_depth_bound(daa_score: u64) -> u64 {
-        Self::get_bps(daa_score) * MERGE_DEPTH_DURATION
-    }
-
-    #[inline]
-    pub const fn finality_depth(daa_score: u64) -> u64 {
-        Self::get_bps(daa_score) * NEW_FINALITY_DURATION
-    }
-
-    #[inline]
-    pub const fn finality_duration(daa_score: u64) -> u64 {
-        Self::target_time_per_block(daa_score) * Self::finality_depth(daa_score)
-    }
-
-    /// Limit used to previously calculate the pruning depth.
-    #[inline]
-    const fn prev_mergeset_size_limit(daa_score: u64) -> u64 {
-        Self::ghostdag_k_with_score(daa_score) as u64 * 10
-    }
-
-    #[inline]
-    pub const fn pruning_depth(daa_score: u64) -> u64 {
-        // Based on the analysis at https://github.com/kaspanet/docs/blob/main/Reference/prunality/Prunality.pdf
-        // and on the decomposition of merge depth (rule R-I therein) from finality depth (φ)
-        // We add an additional merge depth unit as a safety margin for anticone finalization
-        Self::finality_depth(daa_score)
-            + Self::merge_depth_bound(daa_score) * 2
-            + 4 * Self::prev_mergeset_size_limit(daa_score) * Self::ghostdag_k_with_score(daa_score) as u64
-            + 2 * Self::ghostdag_k_with_score(daa_score) as u64
-            + 2
-
-        // TODO (HF or restart of TN11):
-        // Return `Self::finality_depth() * 3` and assert that this value is equal or larger than the above expression.
-        // This will give us a round easy number to track which is not sensitive to minor changes in other related params.
-    }
-
-    #[inline]
-    pub const fn pruning_proof_m() -> u64 {
-        // No need to scale this constant with BPS since the important block levels (higher) remain logarithmically short
-        PRUNING_PROOF_M
-    }
-
-    /// Sample rate for sampling blocks to the median time window (in block units, hence dependent on BPS)
-    #[inline]
-    pub const fn past_median_time_sample_rate() -> u64 {
-        HF_BPS * PAST_MEDIAN_TIME_SAMPLE_INTERVAL
-    }
-
-    /// Sample rate for sampling blocks to the DA window (in block units, hence dependent on BPS)
-    #[inline]
-    pub const fn difficulty_adjustment_sample_rate(daa_score: u64) -> u64 {
-        Self::get_bps(daa_score) * DIFFICULTY_WINDOW_SAMPLE_INTERVAL
-    }
-
-    #[inline]
-    pub const fn coinbase_maturity(daa_score: u64) -> u64 {
-        Self::get_bps(daa_score) * LEGACY_COINBASE_MATURITY
-    }
-
-    /// DAA score after which the pre-deflationary period switches to the deflationary period.
-    ///
-    /// This number is calculated as follows:
-    ///
-    /// - We define a year as 365.25 days
-    /// - Half a year in seconds = 365.25 / 2 * 24 * 60 * 60 = 15778800
-    /// - The network was down for three days shortly after launch
-    /// - Three days in seconds = 3 * 24 * 60 * 60 = 259200
-    #[inline]
-    pub const fn deflationary_phase_daa_score(daa_score: u64) -> u64 {
-        Self::get_bps(daa_score) * (15778800 - 259200)
-    }
-
-    #[inline]
-    pub const fn pre_deflationary_phase_base_subsidy(daa_score: u64) -> u64 {
-        1700000000 / Self::get_bps(daa_score)
-    }
-
-    #[inline]
-    pub const fn get_bps(daa_score: u64) -> u64 {
-        if daa_score > MAINNET_PARAMS.hf_activation_daa_score {
-            HF_BPS
-        } else {
-            PRE_HF_BPS
-        }
-    }
-
-    #[inline]
-    pub fn anticone_finalization_depth(daa_score: u64) -> u64 {
-        let anticone_finalization_depth = Self::finality_depth(daa_score)
-            + Self::merge_depth_bound(daa_score)
-            + 4 * Self::mergeset_size_limit() * Self::ghostdag_k_with_score(daa_score) as u64
-            + 2 * Self::ghostdag_k_with_score(daa_score) as u64
-            + 2;
-
-        // In mainnet it's guaranteed that `self.pruning_depth` is greater
-        // than `anticone_finalization_depth`, but for some tests we use
-        // a smaller (unsafe) pruning depth, so we return the minimum of
-        // the two to avoid a situation where a block can be pruned and
-        // not finalized.
-        min(Self::pruning_depth(daa_score), anticone_finalization_depth)
     }
 }
 
