@@ -48,7 +48,7 @@ impl State {
     #[wasm_bindgen(js_name=checkPow)]
     pub fn check_pow(&self, nonce_jsv: JsValue) -> Result<js_sys::Array> {
         let nonce = nonce_jsv.try_as_u64()?;
-        let (c, v) = self.inner.check_pow(nonce);
+        let (c, v) = self.inner.check_pow(nonce, false); // Won't be activated
         let array = js_sys::Array::new();
         array.push(&JsValue::from(c));
         array.push(&v.to_bigint().map_err(|err| Error::Custom(format!("{err:?}")))?.into());

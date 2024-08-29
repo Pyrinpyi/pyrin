@@ -4,6 +4,9 @@ build-backend = "maturin"
 
 [project]
 name = "pyrin-network"
+description = "Pyrin SDK for the ecosystem"
+keywords = ["pyrin", "pyrin network"]
+readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Rust",
@@ -11,5 +14,15 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dynamic = ["version"]
+[project.optional-dependencies]
+tests = [
+    "pytest",
+]
 [tool.maturin]
 features = ["pyo3/extension-module"]
+# Include python source python/core
+python-source = "core"
+
+[project.urls]
+Homepage = "https://github.com/Pyrinpyi/pyrin/tree/master/sdk/python"
+Issues = "https://github.com/Pyrinpyi/pyrin/issues"

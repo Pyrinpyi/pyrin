@@ -238,7 +238,7 @@ impl Params {
             // with significant testnet hashrate does not overwhelm the network with deep side-DAGs.
             //
             // We use DAA duration as baseline and scale it down with BPS (and divide by 3 for mining only when very close to current time on TN11)
-            let max_expected_duration_without_blocks_in_milliseconds = self.target_time_per_block * self.bps() * NEW_DIFFICULTY_WINDOW_DURATION / 3; // = DAA duration in milliseconds / bps / 3
+            let max_expected_duration_without_blocks_in_milliseconds = self.target_time_per_block * NEW_DIFFICULTY_WINDOW_DURATION / 3; // = DAA duration in milliseconds / bps / 3
             unix_now() < sink_timestamp + max_expected_duration_without_blocks_in_milliseconds
         }
     }
@@ -293,31 +293,31 @@ impl From<NetworkId> for Params {
 
 pub const MAINNET_PARAMS: Params = Params {
     dns_seeders: &[
-        "seeder01-mainnet.pyrin.network",
-        "seeder02-mainnet.pyrin.network",
-        "seeder03-mainnet.pyrin.network",
-        "seeder04-mainnet.pyrin.network",
+        "seeder1-mainnet.pyrin.network",
+        "seeder2-mainnet.pyrin.network",
+        "seeder3-mainnet.pyrin.network",
+        "seeder4-mainnet.pyrin.network",
     ],
     net: NetworkId::new(NetworkType::Mainnet),
     genesis: GENESIS,
-    ghostdag_k: Bps::<10>::ghostdag_k(),
+    ghostdag_k: LEGACY_DEFAULT_GHOSTDAG_K,
     legacy_timestamp_deviation_tolerance: LEGACY_TIMESTAMP_DEVIATION_TOLERANCE,
     new_timestamp_deviation_tolerance: NEW_TIMESTAMP_DEVIATION_TOLERANCE,
-    past_median_time_sample_rate: Bps::<10>::past_median_time_sample_rate(),
+    past_median_time_sample_rate: Bps::<1>::past_median_time_sample_rate(),
     past_median_time_sampled_window_size: MEDIAN_TIME_SAMPLED_WINDOW_SIZE,
-    target_time_per_block: Bps::<10>::target_time_per_block(),
+    target_time_per_block: 1000,
     sampling_activation_daa_score: u64::MAX,
     max_difficulty_target: MAX_DIFFICULTY_TARGET,
     max_difficulty_target_f64: MAX_DIFFICULTY_TARGET_AS_F64,
-    difficulty_sample_rate: Bps::<10>::difficulty_adjustment_sample_rate(),
+    difficulty_sample_rate: Bps::<1>::difficulty_adjustment_sample_rate(),
     sampled_difficulty_window_size: DIFFICULTY_SAMPLED_WINDOW_SIZE as usize,
     legacy_difficulty_window_size: LEGACY_DIFFICULTY_WINDOW_SIZE,
     min_difficulty_window_len: MIN_DIFFICULTY_WINDOW_LEN,
-    max_block_parents: Bps::<10>::max_block_parents(),
-    mergeset_size_limit: Bps::<10>::mergeset_size_limit(),
-    merge_depth: Bps::<10>::merge_depth_bound(),
-    finality_depth: Bps::<10>::finality_depth(),
-    pruning_depth: Bps::<10>::pruning_depth(),
+    max_block_parents: 10,
+    mergeset_size_limit: (LEGACY_DEFAULT_GHOSTDAG_K as u64) * 10,
+    merge_depth: 3600,
+    finality_depth: 86400,
+    pruning_depth: 185798,
     coinbase_payload_script_public_key_max_len: 150,
     max_coinbase_payload_len: 204,
 
@@ -344,14 +344,14 @@ pub const MAINNET_PARAMS: Params = Params {
     // Half a year in seconds = 365.25 / 2 * 24 * 60 * 60 = 15778800
     // The network was down for three days shortly after launch
     // Three days in seconds = 3 * 24 * 60 * 60 = 259200
-    deflationary_phase_daa_score: Bps::<10>::deflationary_phase_daa_score(),
-    pre_deflationary_phase_base_subsidy: Bps::<10>::pre_deflationary_phase_base_subsidy(),
-    coinbase_maturity: Bps::<10>::coinbase_maturity(),
+    deflationary_phase_daa_score: 15778800 - 259200,
+    pre_deflationary_phase_base_subsidy: 1700000000,
+    coinbase_maturity: 100,
     skip_proof_of_work: false,
     max_block_level: 225,
-    pruning_proof_m: Bps::<10>::pruning_proof_m(),
+    pruning_proof_m: 1000,
 
-    hf_relaunch_daa_score: 23_917_744, // Checkpoint DAA score
+    hf_relaunch_daa_score: 27_037_930, // Hardfork at GMT Thursday, September 12, 2024 8:00:00 PM
 };
 
 pub const TESTNET_PARAMS: Params = Params {

@@ -10,6 +10,7 @@ use std::cmp::max;
 
 use crate::matrix::Matrix;
 use kaspa_consensus_core::{hashing, header::Header, BlockLevel};
+use kaspa_consensus_core::config::params::MAINNET_PARAMS;
 use kaspa_hashes::PowHash;
 use kaspa_math::Uint256;
 
@@ -37,17 +38,17 @@ impl State {
     #[inline]
     #[must_use]
     /// PRE_POW_HASH || TIME || 32 zero byte padding || NONCE
-    pub fn calculate_pow(&self, nonce: u64) -> Uint256 {
+    pub fn calculate_pow(&self, nonce: u64, algo_updated: bool) -> Uint256 {
         // Hasher already contains PRE_POW_HASH || TIME || 32 zero byte padding; so only the NONCE is missing
         let hash = self.hasher.clone().finalize_with_nonce(nonce);
-        let hash = self.matrix.heavy_hash(hash);
+        let hash = self.matrix.heavy_hash(hash, algo_updated);
         Uint256::from_le_bytes(hash.as_bytes())
     }
 
     #[inline]
     #[must_use]
-    pub fn check_pow(&self, nonce: u64) -> (bool, Uint256) {
-        let pow = self.calculate_pow(nonce);
+    pub fn check_pow(&self, nonce: u64, algo_updated: bool) -> (bool, Uint256) {
+        let pow = self.calculate_pow(nonce, algo_updated);
         // The pow hash must be less or equal than the claimed target.
         (pow <= self.target, pow)
     }
@@ -59,7 +60,7 @@ pub fn calc_block_level(header: &Header, max_block_level: BlockLevel) -> BlockLe
     }
 
     let state = State::new(header);
-    let (_, pow) = state.check_pow(header.nonce);
+    let (_, pow) = state.check_pow(header.nonce, header.daa_score > MAINNET_PARAMS.hf_relaunch_daa_score);
     let signed_block_level = max_block_level as i64 - pow.bits() as i64;
     max(signed_block_level, 0) as BlockLevel
 }

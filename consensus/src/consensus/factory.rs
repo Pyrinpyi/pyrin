@@ -423,6 +423,7 @@ static UTXO_DUMP_3: &[u8] = include_bytes!("utxo_data.zip.003");
 static UTXO_DUMP_4: &[u8] = include_bytes!("utxo_data.zip.004");
 static UTXO_DUMP_5: &[u8] = include_bytes!("utxo_data.zip.005");
 static UTXO_DUMP_6: &[u8] = include_bytes!("utxo_data.zip.006");
+static UTXO_DUMP_7: &[u8] = include_bytes!("utxo_data.zip.007");
 
 
 fn load_utxo_dump() -> UtxoCollection {
@@ -459,7 +460,8 @@ fn load_utxo_dump() -> UtxoCollection {
     fn read_binary_from_zip_chunks() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let chunks = [
             UTXO_DUMP_1, UTXO_DUMP_2, UTXO_DUMP_3,
-            UTXO_DUMP_4, UTXO_DUMP_5, UTXO_DUMP_6
+            UTXO_DUMP_4, UTXO_DUMP_5, UTXO_DUMP_6,
+            UTXO_DUMP_7
         ];
 
         let total_size: usize = chunks.iter().map(|chunk| chunk.len()).sum();

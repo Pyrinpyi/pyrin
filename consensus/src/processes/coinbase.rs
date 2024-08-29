@@ -148,7 +148,7 @@ impl CoinbaseManager {
             .chain(data.subsidy.to_le_bytes().iter().copied())                                  // Subsidy                      (u64)
             .chain(data.miner_data.script_public_key.version().to_le_bytes().iter().copied())   // Script public key version    (u16)
             .chain((script_pub_key_len as u8).to_le_bytes().iter().copied())                    // Script public key length     (u8)
-            .chain(data.miner_data.script_public_key.script().iter().copied())                  // Script public key            
+            .chain(data.miner_data.script_public_key.script().iter().copied())                  // Script public key
             .chain(data.miner_data.extra_data.as_ref().iter().copied())                         // Extra data
             .collect();
 
@@ -215,15 +215,12 @@ impl CoinbaseManager {
     }
 
     pub fn calc_block_subsidy(&self, daa_score: u64) -> u64 {
-        let hf_daa_score = self.hf_relaunch_daa_score;
-        let hf_daa_delta = hf_daa_score - 6_767_744; // Next reduction to be on 2024-09-20
-
-        if daa_score < hf_daa_score {
+        if daa_score < self.deflationary_phase_daa_score {
             return self.pre_deflationary_phase_base_subsidy;
         }
 
         let months_since_deflationary_phase_started =
-            ((daa_score - hf_daa_delta) / self.blocks_per_month) as usize + 3;
+            ((daa_score - self.deflationary_phase_daa_score) / self.blocks_per_month) as usize;
         if months_since_deflationary_phase_started >= self.subsidy_by_month_table.len() {
             *(self.subsidy_by_month_table).last().unwrap()
         } else {
@@ -296,9 +293,9 @@ mod tests {
         let testnet_11_bps = TESTNET11_PARAMS.bps();
         let total_high_bps_rewards_rounded_up: u64 = pre_deflationary_rewards
             + SUBSIDY_BY_MONTH_TABLE
-                .iter()
-                .map(|x| ((x + testnet_11_bps - 1) / testnet_11_bps * testnet_11_bps) * SECONDS_PER_MONTH)
-                .sum::<u64>();
+            .iter()
+            .map(|x| ((x + testnet_11_bps - 1) / testnet_11_bps * testnet_11_bps) * SECONDS_PER_MONTH)
+            .sum::<u64>();
 
         let cbm = create_manager(&TESTNET11_PARAMS);
         let total_high_bps_rewards: u64 =

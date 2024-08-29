@@ -7,7 +7,7 @@ use futures::FutureExt;
 // for `.fuse()`
 use futures::select_biased;
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyFunction, PyTuple};
+use pyo3::types::{PyDict, PyFunction, PyList, PyTuple};
 use workflow_core::channel::Channel;
 use workflow_core::prelude::spawn;
 
