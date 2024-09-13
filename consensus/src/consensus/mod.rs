@@ -70,7 +70,7 @@ pub mod services;
 pub mod storage;
 pub mod test_consensus;
 
-// #[cfg(feature = "devnet-prealloc")]
+#[cfg(feature = "devnet-prealloc")]
 mod utxo_set_override;
 
 pub struct Consensus {
@@ -663,14 +663,7 @@ impl ConsensusApi for Consensus {
     fn append_imported_pruning_point_utxos(&self, utxoset_chunk: &[(TransactionOutpoint, UtxoEntry)], current_multiset: &mut MuHash) {
         let mut pruning_utxoset_write = self.pruning_utxoset_stores.write();
         pruning_utxoset_write.utxo_set.write_many(utxoset_chunk).unwrap();
-
-        let mut utxos_loaded: usize = 0;
         for (outpoint, entry) in utxoset_chunk {
-            if utxos_loaded % 400_000 == 0 || utxos_loaded >= (utxoset_chunk.len() - 1) {
-                info!("Importing UTXO dump to pruning point utxos ({:.2}%)", (utxos_loaded as f64 / utxoset_chunk.len() as f64) * 100.0);
-            }
-
-            utxos_loaded += 1;
             current_multiset.add_utxo(outpoint, entry);
         }
     }

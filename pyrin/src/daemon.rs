@@ -1,5 +1,4 @@
 use std::{fs, path::PathBuf, process::exit, sync::Arc, time::Duration};
-use std::io::{Cursor, Read};
 
 use async_channel::unbounded;
 use serde::{Deserialize, Serialize};

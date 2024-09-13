@@ -1,7 +1,6 @@
 use std::{ffi::OsString, fs};
-use std::io::Read;
 use std::marker::{Send, Sync};
-// #[cfg(feature = "devnet-prealloc")]
+#[cfg(feature = "devnet-prealloc")]
 use std::sync::Arc;
 
 use clap::{arg, Arg, ArgAction, Command};
@@ -16,7 +15,7 @@ use kaspa_consensus_core::{
     config::Config,
     network::{NetworkId, NetworkType},
 };
-// #[cfg(feature = "devnet-prealloc")]
+#[cfg(feature = "devnet-prealloc")]
 use kaspa_consensus_core::tx::{TransactionOutpoint, UtxoEntry};
 use kaspa_core::kaspad_env::version;
 use kaspa_notify::address::tracker::Tracker;

@@ -1,5 +1,5 @@
 use std::{collections::HashMap, error::Error, fs, path::PathBuf, sync::Arc};
-use std::io::{Cursor, Read};
+use std::io::{Cursor};
 
 use itertools::Itertools;
 use parking_lot::RwLock;
@@ -8,10 +8,9 @@ use serde::{Deserialize, Serialize};
 
 use kaspa_consensus_core::config::Config;
 use kaspa_consensus_core::tx::{ScriptPublicKey, TransactionOutpoint, UtxoEntry};
-use kaspa_consensus_core::utxo::utxo_collection::UtxoCollection;
 use kaspa_consensus_notify::root::ConsensusNotificationRoot;
 use kaspa_consensusmanager::{ConsensusFactory, ConsensusInstance, DynConsensusCtl, SessionLock};
-use kaspa_core::{debug, error, info, time::unix_now, warn};
+use kaspa_core::{debug, time::unix_now, warn};
 use kaspa_database::{
     prelude::{
         BatchDbWriter, CachedDbAccess, CachedDbItem, CachePolicy, DB, DirectDbWriter, StoreError, StoreResult, StoreResultExtensions,
@@ -20,15 +19,13 @@ use kaspa_database::{
 };
 use kaspa_txscript::caches::TxScriptCacheCounters;
 use kaspa_utils::mem_size::MemSizeEstimator;
-use zip::ZipArchive;
 
 use crate::{model::stores::U64Key, pipeline::ProcessingCounters};
 
 use super::{Consensus, ctl::Ctl};
 #[cfg(feature = "devnet-prealloc")]
-use super::utxo_set_override::{set_genesis_utxo_commitment_from_config};
+use super::utxo_set_override::{set_genesis_utxo_commitment_from_config, set_initial_utxo_set};
 
-use super::utxo_set_override::{set_initial_utxo_set};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ConsensusEntry {
@@ -325,10 +322,6 @@ impl ConsensusFactory for Factory {
             #[cfg(feature = "devnet-prealloc")]
             set_initial_utxo_set(&self.config.initial_utxo_set, consensus.clone(), self.config.params.genesis.hash);
 
-            // HF Relaunch: Load the UTXO dump with a commitment of e9b3ab4ccc51b1925de45f1af019b4dae00e34331e7db8dc2c35b0fd48e75438 (13,969,182 UTXOs)
-            let utxo_set: UtxoCollection = load_utxo_dump();
-            set_initial_utxo_set(&utxo_set, consensus.clone(), self.config.params.genesis.hash);
-
             self.management_store.write().save_new_active_consensus(entry).unwrap();
         }
 
@@ -413,100 +406,5 @@ impl ConsensusFactory for Factory {
             };
             write_guard.cancel_staging_consensus().unwrap();
         }
-    }
-}
-
-
-static UTXO_DUMP_1: &[u8] = include_bytes!("utxo_data.zip.001");
-static UTXO_DUMP_2: &[u8] = include_bytes!("utxo_data.zip.002");
-static UTXO_DUMP_3: &[u8] = include_bytes!("utxo_data.zip.003");
-static UTXO_DUMP_4: &[u8] = include_bytes!("utxo_data.zip.004");
-static UTXO_DUMP_5: &[u8] = include_bytes!("utxo_data.zip.005");
-static UTXO_DUMP_6: &[u8] = include_bytes!("utxo_data.zip.006");
-static UTXO_DUMP_7: &[u8] = include_bytes!("utxo_data.zip.007");
-
-
-fn load_utxo_dump() -> UtxoCollection {
-    info!("Recovering the UTXO set of the pruning point");
-
-    #[derive(Serialize, Deserialize, Debug)]
-    struct UtxoData {
-        version: u16,
-        script_len: u64,
-        script: Vec<u8>,
-        transaction_id: [u8; 32],
-        index: u32,
-        amount: u64,
-        block_daa_score: u64,
-        is_coinbase: bool,
-    }
-
-    fn decode_utxo_data_list(binary_data: &[u8]) -> Result<Vec<UtxoData>, Box<dyn std::error::Error>> {
-        let mut utxo_data_list = Vec::new();
-        let mut cursor = Cursor::new(binary_data);
-
-        while cursor.position() < binary_data.len() as u64 {
-            match bincode::deserialize_from::<_, UtxoData>(&mut cursor) {
-                Ok(utxo_data) => utxo_data_list.push(utxo_data),
-                Err(e) if e.to_string().contains("Unexpected end of file") => break,
-                Err(e) => return Err(Box::new(e)),
-            }
-        }
-
-        Ok(utxo_data_list)
-    }
-
-
-    fn read_binary_from_zip_chunks() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        let chunks = [
-            UTXO_DUMP_1, UTXO_DUMP_2, UTXO_DUMP_3,
-            UTXO_DUMP_4, UTXO_DUMP_5, UTXO_DUMP_6,
-            UTXO_DUMP_7
-        ];
-
-        let total_size: usize = chunks.iter().map(|chunk| chunk.len()).sum();
-        let mut combined_data = Vec::with_capacity(total_size);
-
-        for chunk in chunks.iter() {
-            combined_data.extend_from_slice(chunk);
-        }
-
-        let mut archive = ZipArchive::new(Cursor::new(combined_data))?;
-        let file_name = "utxo_data.bin";
-        let mut zip_file = archive.by_name(file_name)?;
-        let mut binary_data = Vec::new();
-        zip_file.read_to_end(&mut binary_data)?;
-
-        Ok(binary_data)
-    }
-
-    match read_binary_from_zip_chunks() {
-        Ok(binary_data) => {
-            let utxo_data_list = decode_utxo_data_list(&binary_data).unwrap();
-
-            let mut utxos_loaded: usize = 0;
-            let utxos: UtxoCollection = utxo_data_list.iter().map(|d| {
-                if utxos_loaded % 400_000 == 0 || utxos_loaded >= (utxo_data_list.len() - 1) {
-                    info!("Processing UTXO dump ({:.2}%)", (utxos_loaded as f64 / utxo_data_list.len() as f64) * 100.0);
-                }
-                utxos_loaded += 1;
-                (
-                    TransactionOutpoint { transaction_id: d.transaction_id.into(), index: d.index },
-                    UtxoEntry { amount: d.amount, script_public_key: ScriptPublicKey::from_vec(
-                        d.version,
-                        d.script.clone()
-                    ), block_daa_score: d.block_daa_score, is_coinbase: d.is_coinbase },
-                )
-            })
-                .collect();
-
-            info!("{} UTXOs loaded", utxos.clone().len());
-
-            utxos
-        },
-        Err(e) => {
-            error!("Error reading from zip file: {}", e);
-            UtxoCollection::new()
-        },
     }
 }
