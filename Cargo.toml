@@ -59,6 +59,7 @@ members = [
     "metrics/perf_monitor",
     "utils/alloc",
     "sdk/python",
+    "tools/export-db",
 ]
 
 [workspace.package]

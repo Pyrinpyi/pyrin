@@ -492,7 +492,7 @@ impl ConsensusApi for Consensus {
     /// Estimates number of blocks and headers stored in the node
     ///
     /// This is an estimation based on the daa score difference between the node's `source` and `sink`'s daa score,
-    /// as such, it does not include non-daa blocks, and does not include headers stored as part of the pruning proof.  
+    /// as such, it does not include non-daa blocks, and does not include headers stored as part of the pruning proof.
     fn estimate_block_count(&self) -> BlockCount {
         // PRUNE SAFETY: node is either archival or source is the pruning point which its header is kept permanently
         let source_score = self.headers_store.get_compact_header_data(self.get_source()).unwrap().daa_score;
