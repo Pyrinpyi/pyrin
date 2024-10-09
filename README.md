@@ -3,6 +3,9 @@
 
 Pyrin node built on rust, based on [rusty-kaspa](https://github.com/kaspanet/rusty-kaspa)
 
+#### Archived 
+Repo moved to https://github.com/PyrinNetwork/pyrin
+
 ## Installation
   <details>
   <summary>Building on Linux</summary>
